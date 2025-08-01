@@ -275,6 +275,7 @@ for (i = 2; i < argc; i++) {
     char * optbin_files[] = {
 	"desktop",
 	"hellogui",
+	"paint2",
 	NULL
     };
 

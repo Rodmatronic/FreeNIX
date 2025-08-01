@@ -116,7 +116,8 @@ putpixel_bg(int x, int y, int color)
 //        return;
 
     background[y][x] = color;
-    putpixel(x, y, color);
+//    putpixel(x, y, color);
+    save_background(dx, dy);
 }
 
 void putrect_trans(int x1, int y1, int x2, int y2, int color) {
@@ -139,6 +140,7 @@ void putline(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t color) 
     
     while (1) {
         putpixel_bg(x1, y1, color);
+	putpixel(x1, y1, color);
         if (x1 == x2 && y1 == y2) break;
         e2 = 2 * err;
         if (e2 >= dy) { err += dy; x1 += sx; }

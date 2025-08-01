@@ -208,6 +208,7 @@ UPROGS=\
 	$C/_uname\
 	$C/_wc\
 	$C/_yes\
+	$C/_paint2\
 
 $S/fs.img: $S/mkfs $M/README $(UPROGS)
 	$S/mkfs $S/fs.img $M/rc $M/passwd $M/group $M/motd $M/changelog $M/cd.1 $M/COPYRIGHT $(UPROGS)

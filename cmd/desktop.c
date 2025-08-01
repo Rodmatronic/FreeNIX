@@ -5,21 +5,21 @@
 #include "../include/font8x16.h"
 #include "../include/graphics.h"
 
-int helloworldbutton;
 
 int
 main()
 {
     initgraphics("Desktop", CYAN);
-    int helloworldbutton = putbutton(0, 25, 64, 64, "Hellogui", GREY, WHITE);
-
+    int helloworldbutton = putbutton(0, 25, 64, 64, "Hellogui", GREY, BLACK);
+    int paint = putbutton(64, 25, 64, 64, "Paint", GREY, BLACK);
     flush_background();
 
     while (1) {
 	mouser();
 	if (getbuttonclick(helloworldbutton))
 		openprogram("/opt/bin/hellogui");
-
+	if (getbuttonclick(paint))
+		openprogram("/opt/bin/paint2");
         usleep(5000);
     }
 

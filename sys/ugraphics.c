@@ -150,6 +150,21 @@ void putline(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t color) 
     }
 }
 
+void putline_slow(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t color) {
+    int dx = abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
+    int dy = -abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
+    int err = dx + dy, e2;
+
+    while (1) {
+        putpixel_bg(x1, y1, color);
+	putpixel(x1, y1, color);
+        if (x1 == x2 && y1 == y2) break;
+        e2 = 2 * err;
+        if (e2 >= dy) { err += dy; x1 += sx; }
+        if (e2 <= dx) { err += dx; y1 += sy; }
+    }
+}
+
 void putrect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t color) {
     putline(x, y, x, y + height, color);
     putline(x, y, x + width, y, color);
