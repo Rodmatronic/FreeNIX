@@ -432,3 +432,29 @@ mouser()
 	old_leftclick = leftclick;
 	checkbar(dx, dy);
 }
+
+void
+putimage(x, y, width, height, bits, c)
+char bits[];
+{
+  int bytes_per_row = (width + 7) / 8;
+
+  for(int row = 0; row < height; row++) {
+    for(int byte_in_row = 0; byte_in_row < bytes_per_row; byte_in_row++) {
+      unsigned char byte = bits[row * bytes_per_row + byte_in_row];
+      for(int bit = 0; bit < 8; bit++) {
+        x = byte_in_row * 8 + bit;
+        if(x >= width) {
+          break; // Skip padding bits at end of row
+        }
+
+        if(!(byte & (1 << bit))) {
+          putpixel_bg(x, y, c);
+        }
+      }
+    }
+    y++;
+    x = 0;
+  }
+  return 0;
+}
