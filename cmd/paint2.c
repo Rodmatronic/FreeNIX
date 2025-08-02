@@ -6,6 +6,7 @@
 #include "../include/graphics.h"
 
 int current_color = BLACK;
+int current_radius = 3;
 int old_dx, old_dy;
 
 int
@@ -28,7 +29,9 @@ main()
     int color_14 = putbutton(0, 175, 25, 25, "14", BRIGHT_MAGENTA, BLACK);
     int color_15 = putbutton(25, 200, 25, 25, "15", YELLOW, BLACK);
     int color_16 = putbutton(0, 200, 25, 25, "16", WHITE, BLACK);
-    int blank_panel = putbutton(0, 225, 50, 265, "", GREY, GREY);
+    int blank_panel = putbutton(0, 250, 50, 250, "", GREY, GREY);
+    int minus = putbutton(0, 225, 25, 25, "-", GREY, BLACK);
+    int plus = putbutton(25, 225, 25, 25, "+", GREY, BLACK);
     flush_background();
 
     while (1) {
@@ -65,10 +68,18 @@ main()
                 current_color =	14;
         if (getbuttonclick(color_16))
                 current_color =	15;
-	if (leftclick && dy > 25 && dx > 50){
-		if (old_dy < 25) old_dy = 25;
-		if (old_dx < 50) old_dx = 50;
-		putline_slow(old_dx, old_dy, dx, dy, current_color);
+	if (getbuttonclick(plus))
+		current_radius++;
+	if (getbuttonclick(minus))
+		current_radius--;
+	if (leftclick && dy > 25+current_radius+1 && dx > 50+current_radius+1){
+		if (old_dy < 25+current_radius+1) old_dy = 25+current_radius+1;
+		if (old_dx < 50+current_radius+1) old_dx = 50+current_radius+1;
+		if (current_radius <= 0) {
+			dputline(old_dx, old_dy, dx, dy, current_color);
+		} else {
+			dputline_thick(old_dx, old_dy, dx, dy, current_radius, current_color);
+		}
 	}
 	old_dx = dx;
 	old_dy = dy;

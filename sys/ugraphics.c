@@ -150,7 +150,7 @@ void putline(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t color) 
     }
 }
 
-void putline_slow(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t color) {
+void dputline(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t color) {
     int dx = abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
     int dy = -abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
     int err = dx + dy, e2;
@@ -164,6 +164,7 @@ void putline_slow(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t co
         if (e2 <= dx) { err += dx; y1 += sy; }
     }
 }
+
 
 void putrect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t color) {
     putline(x, y, x, y + height, color);
@@ -180,6 +181,73 @@ void putrectf(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t c
     for (int i = 0; i < height; i++) {
         putline(x, y + i, x + width, y + i, color);
     }
+}
+
+void bres_circle(int xc, int yc, int x, int y, uint8_t color) {
+    putpixel_bg(xc + x, yc + y, color);
+    putpixel_bg(xc - x, yc + y, color);
+    putpixel_bg(xc + x, yc - y, color);
+    putpixel_bg(xc - x, yc - y, color);
+    putpixel_bg(xc + y, yc + x, color);
+    putpixel_bg(xc - y, yc + x, color);
+    putpixel_bg(xc + y, yc - x, color);
+    putpixel_bg(xc - y, yc - x, color);
+}
+
+void dbres_circle(int xc, int yc, int x, int y, uint8_t color) {
+    putpixel_bg(xc + x, yc + y, color);
+    putpixel_bg(xc - x, yc + y, color);
+    putpixel_bg(xc + x, yc - y, color);
+    putpixel_bg(xc - x, yc - y, color);
+    putpixel_bg(xc + y, yc + x, color);
+    putpixel_bg(xc - y, yc + x, color);
+    putpixel_bg(xc + y, yc - x, color);
+    putpixel_bg(xc - y, yc - x, color);
+    putpixel(xc + x, yc + y, color);
+    putpixel(xc - x, yc + y, color);
+    putpixel(xc + x, yc - y, color);
+    putpixel(xc - x, yc - y, color);
+    putpixel(xc + y, yc + x, color);
+    putpixel(xc - y, yc + x, color);
+    putpixel(xc + y, yc - x, color);
+    putpixel(xc - y, yc - x, color);
+}
+
+void dputcircle(uint16_t x, uint16_t y, uint16_t radius, uint8_t color) {
+    int x2 = 0, y2 = radius;
+    int d = 3 - 2 * radius;
+    dbres_circle(x, y, x2, y2, color);
+    while (y2 >= x2) {
+        x2++;
+        if (d > 0) {
+            y2--;
+            d = d + 4 * (x2 - y2) + 10;
+        } else {
+            d = d + 4 * x2 + 6;
+        }
+        dbres_circle(x, y, x2, y2, color);
+    }
+}
+
+void dputline_thick(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t r, uint8_t color) {
+    int dx = abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
+    int dy = -abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
+    int err = dx + dy, e2;
+    for (int i = 0; i < r+1; i++) dputcircle(x1, y1, i, color);
+    while (1) {
+        for (int i = r+1; i > -r-1; i--) {
+            putpixel_bg(x1+i, y1, color);
+            putpixel(x1+i, y1, color);
+            putpixel_bg(x1, y1+i, color);
+            putpixel(x1, y1+i, color);
+        }
+
+        if (x1 == x2 && y1 == y2) break;
+        e2 = 2 * err;
+        if (e2 >= dy) { err += dy; x1 += sx; }
+        if (e2 <= dx) { err += dx; y1 += sy; }
+    }
+    for (int i = 0; i <	r+1; i++) dputcircle(x1, y1, i, color);
 }
 
 void graphical_putc(int x, int y, char c, uint8_t color) {
