@@ -48,8 +48,8 @@ putpixel(x, y, color)
 }
 
 void save_background(int x, int y) {
-    for (int row = 0; row < cursor_height + 2; row++) {
-        for (int col = 0; col < cursor_width + 2; col++) {
+    for (int row = 0; row < cursor_height; row++) {
+        for (int col = 0; col < cursor_width; col++) {
             if (y + row < VGA_MAX_HEIGHT && x + col < VGA_MAX_WIDTH) {
                 saved_bg[row][col] = background[y + row][x + col];
             }
@@ -102,7 +102,7 @@ void draw_cursor(int x, int y) {
 void render_background() {
     for (int y = 0; y < VGA_MAX_HEIGHT; y++) {
         for (int x = 0; x < VGA_MAX_WIDTH; x++) {
-            if(!background[y][x] == 0x00){
+            if(background[y][x] != 0x00){
 		    putpixel(x, y, background[y][x]);
 	    }
         }
