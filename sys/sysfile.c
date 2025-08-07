@@ -89,7 +89,7 @@ sys_devctl(void)
 			return -1;
 	}else
 	if (sig == 2) {
-		vga_clear_screen(0x00);
+		vga_clear_screen(data);
 		return 0;
 	}
 	else if (sig == 3) {  // Bulk update
@@ -118,6 +118,39 @@ sys_devctl(void)
             			putpixel(abs_x, abs_y, color & 0x0F);
         		}
     		}
+    		return 0;
+	}
+	if (sig == 4) { // Bulk read
+		char* user_ptr;
+		if (argptr(2, (void*)&user_ptr, sizeof(struct vga_meta)) < 0)
+			return -1;
+
+		struct vga_meta* meta = (struct vga_meta*)user_ptr;
+		size_t buf_size = meta->width * meta->height;
+
+		if (meta->width <= 0 || meta->height <= 0 || buf_size > 1024 ||
+			meta->x < 0 || meta->x + meta->width > VGA_MAX_WIDTH ||
+        		meta->y < 0 || meta->y + meta->height > VGA_MAX_HEIGHT) {
+        		return -1;
+    		}
+
+    		if (argptr(2, (void*)&user_ptr, sizeof(struct vga_meta) + buf_size) < 0)
+        		return -1;
+
+    		uint8_t* pixels = (uint8_t*)(user_ptr + sizeof(struct vga_meta));
+    		uint8_t temp_buf[1024]; // Temporary kernel buffer
+
+    		for (int rel_y = 0; rel_y < meta->height; rel_y++) {
+        		for (int rel_x = 0; rel_x < meta->width; rel_x++) {
+            			int abs_x = meta->x + rel_x;
+            			int abs_y = meta->y + rel_y;
+            			temp_buf[rel_y * meta->width + rel_x] = getpixel(abs_x, abs_y);
+        		}
+    		}
+
+    		if (copyout(myproc()->pgdir, (uint)pixels, temp_buf, buf_size) < 0)
+        		return -1;
+
     		return 0;
 	}
 

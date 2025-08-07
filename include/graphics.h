@@ -53,11 +53,12 @@ void graphical_puts(int x, int y, const char* str, uint8_t color);
 int putbutton(int x, int y, int width, int height, const char* text, int color, int fg);
 void update_buttons(int x, int y, int leftclick, int old_leftclick);
 int getbuttonclick(int id);
-void initgraphics(char * s, int c);
+void initgraphics(int x, int y, int width, int height, char * s, int c);
 void checkbar(int x, int y);
 void alert(char * msg);
 int openprogram(char * name);
 void flush_background();
 void mouser();
 void putimage(int x, int y, int width, int height, char bits[], int c);
+void clearscreen();
 #endif

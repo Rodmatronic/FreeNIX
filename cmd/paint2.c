@@ -12,7 +12,7 @@ int old_dx, old_dy;
 int
 main()
 {
-    initgraphics("Paint", WHITE);
+    initgraphics(300, 20, 300, 380, "Paint", WHITE);
     int color_1 = putbutton(25, 25, 25, 25, "1", BLACK, WHITE);
     int color_2 = putbutton(0, 25, 25, 25, "2", BLUE, WHITE);
     int color_3 = putbutton(25, 50, 25, 25, "3", GREEN, WHITE);

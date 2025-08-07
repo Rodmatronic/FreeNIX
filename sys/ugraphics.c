@@ -9,6 +9,13 @@ typedef struct {
     int clicked;
 } Button;
 
+struct Window {
+	int x, y, width, height;
+	char * name;
+};
+
+struct Window win;
+
 static Button buttons[MAX_BUTTONS];
 static int button_count = 0;
 static int pressed_button_id = -1;
@@ -44,7 +51,10 @@ pack_pixel(int x, int y, int color)
 void
 putpixel(int x, int y, int color)
 {
-	devctl(1, 1, pack_pixel(x, y, color));
+    if (x < win.x || x >= win.x + win.width || y < win.y || y >= win.y + win.height) {
+        return;
+    }
+    devctl(1, 1, pack_pixel(x, y, color));
 }
 
 void save_background(int x, int y) {
@@ -96,14 +106,12 @@ void draw_cursor(int x, int y) {
     }
 }
 
-void
-putpixel_bg(int x, int y, int color)
-{
-    if (x < 0 || x >= VGA_MAX_WIDTH || y < 0 || y >= VGA_MAX_HEIGHT)
+void putpixel_bg(int x, int y, int color) {
+    // Clip to window bounds
+    if (x < win.x || x >= win.x + win.width || y < win.y || y >= win.y + win.height) {
         return;
-
+    }
     background[y * VGA_MAX_WIDTH + x] = color;
-//    putpixel(x, y, color);
 }
 
 struct vga_update {
@@ -113,14 +121,21 @@ struct vga_update {
 };
 
 void flush_background() {
-    size_t buf_size = VGA_MAX_WIDTH * VGA_MAX_HEIGHT;
+    size_t buf_size = win.width * win.height;
     struct vga_update* update = malloc(sizeof(struct vga_update) + buf_size);
 
-    update->x = 0;
-    update->y = 0;
-    update->width = VGA_MAX_WIDTH;
-    update->height = VGA_MAX_HEIGHT;
-    memmove(update->pixels, background, buf_size);
+    update->x = win.x;
+    update->y = win.y;
+    update->width = win.width;
+    update->height = win.height;
+
+    // Copy only the window's region from the background buffer
+    for (int j = 0; j < win.height; j++) {
+        int src_y = win.y + j;
+        uint8_t *src = background + src_y * VGA_MAX_WIDTH + win.x;
+        uint8_t *dst = update->pixels + j * win.width;
+        memmove(dst, src, win.width);
+    }
 
     devctl(1, 3, update);
     free(update);
@@ -269,7 +284,7 @@ void graphical_puts(int x, int y, const char* str, uint8_t color) {
     int current_x = x;
 
     while (*str != '\0') {
-        graphical_putc(current_x, y, *str, color);
+        graphical_putc(win.x+current_x, win.y+y, *str, color);
         current_x += FONT_WIDTH;
         str++;
     }
@@ -279,19 +294,19 @@ int putbutton(int x, int y, int width, int height, const char* text, int color, 
     if (button_count >= MAX_BUTTONS) return -1;
 
     Button *b = &buttons[button_count];
-    b->x = x;
-    b->y = y;
+    b->x = win.x+x;
+    b->y = win.y+y;
     b->width = width;
     b->height = height;
     b->pressed = 0;
     b->clicked = 0;
 
     // Draw the button
-    putrectf(x+1, y+1, width-2, height-2, color);
-    putline(x, y, x+width, y, 0xF);
-    putline(x, y, x, y+height, 0xF);
-    putline(x+width, y, x+width, y+height, 0x8);
-    putline(x, y+height, x+width, y+height, 0x8);
+    putrectf(win.x+x+1, win.y+y+1, width-2, height-2, color);
+    putline(win.x+x, win.y+y, win.x+x+width, win.y+y, 0xF);
+    putline(win.x+x, win.y+y, win.x+x, win.y+y+height, 0xF);
+    putline(win.x+x+width, win.y+y, win.x+x+width, win.y+y+height, 0x8);
+    putline(win.x+x, win.y+y+height, win.x+x+width, win.y+y+height, 0x8);
     graphical_puts(x + 3, y + height/2 - 7, text, fg);
 
     return button_count++;
@@ -349,21 +364,29 @@ int getbuttonclick(int id) {
 int exitbutton;
 
 void
-initgraphics(char * s, int c)
+initgraphics(int x, int y, int width, int height, char * s, int c)
 {
+    win.x = x;
+    win.y = y;
+    win.width = width;
+    win.height = height;
+    win.name = s;
+//    printf("window at %d, %d, %d, %d\n", x, y, width, height);
+
     if (background) free(background);
     background = malloc(VGA_MAX_WIDTH * VGA_MAX_HEIGHT * sizeof(uint8_t));
 
     if (saved_bg) free(saved_bg);
     saved_bg = malloc(cursor_width * cursor_height);
 
-    putrectf(0, 0, VGA_MAX_WIDTH, 24, 0x7);
-    putline(0, 0, VGA_MAX_WIDTH, 0, 0xF);
-    putline(0, 0, 0, 24, 0xF);
-    putbutton(VGA_MAX_WIDTH-80, 1, 79, 22, "Exit", 0x07, BLACK);
+    putrectf(x+0, y+0, width, 24, 0x7);
+    putline(x+0, y+0, x+width, y+0, 0xF);
+    putline(x+0, y+0, x+0, y+24, 0xF);
+    putbutton(width-80, 1, 79, 22, "Exit", 0x07, BLACK);
     graphical_puts(4, 6, s, 0x00);
-    putline(0, 24, VGA_MAX_WIDTH, 24, 0x08);
-    putrectf(0, 25, VGA_MAX_WIDTH, VGA_MAX_HEIGHT, c);
+    putline(x+0, y+24, x+width, y+24, 0x08);
+    putrectf(x+0, y+25, width, height, c);
+    putrect(x+0, y+0, width-1, height-1, 0xF);
 }
 
 void
@@ -400,15 +423,25 @@ openprogram(char * name)
 		exec(name, argv);
 		return 1;
 	}
-	while((wpid=wait(0)) >= 0 && wpid != pid){}
+//	while((wpid=wait(0)) >= 0 && wpid != pid){}
 	flush_background();
 	return 0;
 }
 
+
+
+//!!
+
+// UPDATE ME TO USE UNIVERSAL GRAPHICS COLOUR
+
+//!!
+
+
 void
 graphicsexit(int r)
 {
-//	devctl(1, 2, 0);
+	putrectf(win.x, win.y, win.width, win.height, 0x8);
+	flush_background();
 	exit(r);
 }
 
@@ -461,4 +494,10 @@ char bits[];
     x = 0;
   }
   return 0;
+}
+
+void
+clearscreen()
+{
+	devctl(1, 2, 0x8);
 }

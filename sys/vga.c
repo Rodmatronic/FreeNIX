@@ -200,7 +200,7 @@ vgainit(void)
     vga_load_palette();
 
     g_vga_buffer = (uint8_t*)VGA_ADDRESS;
-    vga_clear_screen(bg_color);
+    vga_clear_screen(0x00);
     cprintf("%s %s\n", sys_name, sys_version);
     cprintf("vgainit: %c%c Graphical vga on 0x%x\n", 0x01, 0x02, VGA_ADDRESS);
 }
@@ -271,7 +271,7 @@ vga_clear_screen(uint8_t colour)
     for(y = 0; y < 480; y++) {
 	    for(x = 0; x < 640; x++)
 	    {
-		   putpixel(x, y, bg_color);
+		   putpixel(x, y, colour);
 	    }
     }
 }
@@ -295,3 +295,23 @@ putpixel(uint16_t x, uint16_t y, uint8_t color)
     g_vga_buffer[offset] = color & 0x0F;
 }
 
+uint8_t
+getpixel(uint16_t x, uint16_t y)
+{
+    if (x >= VGA_MAX_WIDTH || y >= VGA_MAX_HEIGHT)
+        return 0;
+
+    uint32_t offset = y * VGA_GRAPHICS_BYTES_PER_LINE + (x / 8);
+    uint8_t bit_mask = 1 << (7 - (x % 8));
+    uint8_t color = 0;
+
+    for (int plane = 0; plane < 4; plane++) {
+        outb(VGA_GC_INDEX, 0x04);   // Set index to Read Map Select Register
+        outb(VGA_GC_DATA, plane);   // Select plane to read
+        uint8_t plane_byte = g_vga_buffer[offset];
+        if (plane_byte & bit_mask) {
+            color |= (1 << plane);
+        }
+    }
+    return color;
+}

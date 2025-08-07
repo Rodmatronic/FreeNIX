@@ -11,7 +11,7 @@ int helloworldbutton;
 int
 main()
 {
-    initgraphics("Hello World!", WHITE);
+    initgraphics(10, 200, 200, 150, "Hello World!", WHITE);
     graphical_puts(20, 45, "Hello World!", BLACK);
     flush_background();
 

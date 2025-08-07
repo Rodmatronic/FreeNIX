@@ -233,6 +233,7 @@ void		putline(uint16_t, uint16_t, uint16_t, uint16_t, uint8_t);
 void		putrect(uint16_t, uint16_t, uint16_t, uint16_t, uint8_t);
 void		putrectf(uint16_t, uint16_t, uint16_t, uint16_t, uint8_t);
 void		putcircle(uint16_t, uint16_t, uint16_t, uint8_t);
+uint8_t		getpixel(uint16_t x, uint16_t y);
 extern uint8_t *g_vga_buffer;
 #define VGA_SEQ_INDEX  0x3C4
 #define VGA_SEQ_DATA   0x3C5
