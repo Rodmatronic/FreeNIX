@@ -39,7 +39,6 @@ void putpixel(int x, int y, int color);
 void save_background(int x, int y);
 void restore_background(int x, int y);
 void draw_cursor(int x, int y);
-void render_background();
 void putpixel_bg(int x, int y, int color);
 void putrect_trans(int x1, int y1, int x2, int y2, int color);
 void putline(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t color);

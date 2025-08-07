@@ -27,11 +27,8 @@ int leftclick, old_leftclick, leftdown;
 int rightclick, old_rightclick, rightdown;
 int middleclick, old_middleclick, middledown;
 
-// Background buffer (640x480 pixels)
-static uint8_t background[VGA_MAX_HEIGHT][VGA_MAX_WIDTH];
-
-// Saved cursor background
-static uint8_t saved_bg[cursor_height][cursor_width];
+static uint8_t *background = NULL;
+static uint8_t *saved_bg = NULL;
 
 int result;
 int dx, dy;
@@ -41,32 +38,29 @@ int mousebuttons;
 
 pack_pixel(int x, int y, int color)
 {
-    return (x << 22) | (y << 12) | (color & 0xFF);
+	return (x << 22) | (y << 12) | (color & 0xFF);
 }
 
 void
 putpixel(int x, int y, int color)
 {
-  devctl(1, 1, pack_pixel(x, y, color));
+	devctl(1, 1, pack_pixel(x, y, color));
 }
 
 void save_background(int x, int y) {
     for (int row = 0; row < cursor_height; row++) {
         for (int col = 0; col < cursor_width; col++) {
-            if (y + row < VGA_MAX_HEIGHT && x + col < VGA_MAX_WIDTH) {
-                saved_bg[row][col] = background[y + row][x + col];
-            }
+                saved_bg[row * cursor_width + col] =
+                    background[(y + row) * VGA_MAX_WIDTH + (x + col)];
         }
     }
 }
 
-// Restore background under cursor position
 void restore_background(int x, int y) {
     for (int row = 0; row < cursor_height; row++) {
         for (int col = 0; col < cursor_width; col++) {
-            if (y + row < VGA_MAX_HEIGHT && x + col < VGA_MAX_WIDTH) {
-                putpixel(x + col, y + row, background[y + row][x + col]);
-            }
+                background[(y + row) * VGA_MAX_WIDTH + (x + col)] = saved_bg[row * cursor_width + col];
+                putpixel(x + col, y + row, saved_bg[row * cursor_width + col]);
         }
     }
 }
@@ -102,28 +96,34 @@ void draw_cursor(int x, int y) {
     }
 }
 
-void render_background() {
-    for (int y = 0; y < VGA_MAX_HEIGHT; y++) {
-        for (int x = 0; x < VGA_MAX_WIDTH; x++) {
-            if(background[y][x] != 0x00){
-		    putpixel(x, y, background[y][x]);
-	    }
-        }
-    }
-}
-
 void
 putpixel_bg(int x, int y, int color)
 {
     if (x < 0 || x >= VGA_MAX_WIDTH || y < 0 || y >= VGA_MAX_HEIGHT)
         return;
 
-    background[y][x] = color;
+    background[y * VGA_MAX_WIDTH + x] = color;
 //    putpixel(x, y, color);
 }
 
+struct vga_update {
+    int x, y;
+    int width, height;
+    uint8_t pixels[];
+};
+
 void flush_background() {
-    devctl(1, 3, background);
+    size_t buf_size = VGA_MAX_WIDTH * VGA_MAX_HEIGHT;
+    struct vga_update* update = malloc(sizeof(struct vga_update) + buf_size);
+
+    update->x = 0;
+    update->y = 0;
+    update->width = VGA_MAX_WIDTH;
+    update->height = VGA_MAX_HEIGHT;
+    memmove(update->pixels, background, buf_size);
+
+    devctl(1, 3, update);
+    free(update);
 }
 
 void putrect_trans(int x1, int y1, int x2, int y2, int color) {
@@ -351,6 +351,12 @@ int exitbutton;
 void
 initgraphics(char * s, int c)
 {
+    if (background) free(background);
+    background = malloc(VGA_MAX_WIDTH * VGA_MAX_HEIGHT * sizeof(uint8_t));
+
+    if (saved_bg) free(saved_bg);
+    saved_bg = malloc(cursor_width * cursor_height);
+
     putrectf(0, 0, VGA_MAX_WIDTH, 24, 0x7);
     putline(0, 0, VGA_MAX_WIDTH, 0, 0xF);
     putline(0, 0, 0, 24, 0xF);
@@ -395,7 +401,6 @@ openprogram(char * name)
 		return 1;
 	}
 	while((wpid=wait(0)) >= 0 && wpid != pid){}
-//	render_background();
 	flush_background();
 	return 0;
 }

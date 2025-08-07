@@ -45,6 +45,11 @@
 //  // ... (similar to gtty, but copy from user to TTY)
 //}
 
+struct vga_meta {
+    int x, y;
+    int width, height;
+};
+
 int
 sys_devctl(void)
 {
@@ -87,20 +92,35 @@ sys_devctl(void)
 		vga_clear_screen(0x00);
 		return 0;
 	}
-else if (sig == 3) { // bulk update
-    char* user_buffer;
-    if (argptr(2, (void*)&user_buffer, VGA_MAX_HEIGHT * VGA_MAX_WIDTH) < 0)
-        return -1;
+	else if (sig == 3) {  // Bulk update
+    		char* user_ptr;
+    		if (argptr(2, (void*)&user_ptr, sizeof(struct vga_meta)) < 0)
+        		return -1;
 
-    for (int y = 0; y < VGA_MAX_HEIGHT; y++) {
-        for (int x = 0; x < VGA_MAX_WIDTH; x++) {
-            uint8_t color = user_buffer[y * VGA_MAX_WIDTH + x];
-            putpixel(x, y, color & 0x0F);
-        }
-    }
+    		struct vga_meta* meta = (struct vga_meta*)user_ptr;
     
-    return 0;
-    }
+    		if (meta->width <= 0 || meta->height <= 0 ||
+        		meta->x < 0 || meta->x + meta->width > VGA_MAX_WIDTH ||
+        		meta->y < 0 || meta->y + meta->height > VGA_MAX_HEIGHT) {
+       			return -1;
+    		}
+
+    		size_t buf_size = meta->width * meta->height;
+    		if (argptr(2, (void*)&user_ptr, sizeof(struct vga_meta) + buf_size) < 0)
+        		return -1;
+
+    		uint8_t* pixels = (uint8_t*)(user_ptr + sizeof(struct vga_meta));
+    		for (int rel_y = 0; rel_y < meta->height; rel_y++) {
+        		for (int rel_x = 0; rel_x < meta->width; rel_x++) {
+            			int abs_x = meta->x + rel_x;
+            			int abs_y = meta->y + rel_y;
+            			uint8_t color = pixels[rel_y * meta->width + rel_x];
+            			putpixel(abs_x, abs_y, color & 0x0F);
+        		}
+    		}
+    		return 0;
+	}
+
   }
   return -1;
 }

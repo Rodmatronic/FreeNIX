@@ -11,3 +11,4 @@ echo
 #mkdir /tmp
 date; echo
 /etc/cron
+/opt/bin/desktop
