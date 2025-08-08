@@ -5,6 +5,8 @@
 #include "../include/font8x16.h"
 #include "../include/graphics.h"
 
+extern struct Window win;
+
 int current_color = BLACK;
 int current_radius = 3;
 int old_dx, old_dy;
@@ -72,14 +74,15 @@ main()
 		current_radius++;
 	if (getbuttonclick(minus))
 		current_radius--;
-	if (leftclick && dy > 25+current_radius+1 && dx > 50+current_radius+1){
-		if (old_dy < 25+current_radius+1) old_dy = 25+current_radius+1;
-		if (old_dx < 50+current_radius+1) old_dx = 50+current_radius+1;
+	if (leftclick && dy > 25+current_radius+1+win.y && dx > 50+current_radius+1+win.x){
+		if (old_dy < 25+current_radius+1+win.y) old_dy = 25+current_radius+1+win.y;
+		if (old_dx < 50+current_radius+1+win.x) old_dx = 50+current_radius+1+win.x;
 		if (current_radius <= 0) {
 			dputline(old_dx, old_dy, dx, dy, current_color);
 		} else {
 			dputline_thick(old_dx, old_dy, dx, dy, current_radius, current_color);
 		}
+		save_background(dx, dy);
 	}
 	old_dx = dx;
 	old_dy = dy;
