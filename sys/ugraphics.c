@@ -65,6 +65,12 @@ putpixel(int x, int y, int color)
     devctl(1, 1, pack_pixel(x, y, color));
 }
 
+void
+dputpixel(int x, int y, int color)
+{
+    devctl(1, 1, pack_pixel(x, y, color));
+}
+
 void save_background(int x, int y) {
     for (int row = 0; row < cursor_height; row++) {
         for (int col = 0; col < cursor_width; col++) {
@@ -243,7 +249,7 @@ void dputline(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t color)
 
     while (1) {
         putpixel_bg(x1, y1, color);
-	putpixel(x1, y1, color);
+	dputpixel(x1, y1, color);
         if (x1 == x2 && y1 == y2) break;
         e2 = 2 * err;
         if (e2 >= dy) { err += dy; x1 += sx; }
@@ -256,6 +262,13 @@ void putrect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t co
     putline(x, y, x + width, y, color);
     putline(x + width, y, x + width, y + height, color);
     putline(x, y + height, x + width, y + height, color);
+}
+
+void dputrect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t color) {
+    dputline(x, y, x, y + height, color);
+    dputline(x, y, x + width, y, color);
+    dputline(x + width, y, x + width, y + height, color);
+    dputline(x, y + height, x + width, y + height, color);
 }
 
 void putrectf(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t color) {
@@ -439,8 +452,7 @@ void update_buttons(int x, int y, int leftclick, int old_leftclick) {
 void redraw_buttons() {
     for (int i = 0; i < button_count; i++) {
         Button *b = &buttons[i];
-        uint8_t color = b->pressed ? 0x0F : 0x07;
-        putrectf(b->abs_x+1, b->abs_y+1, b->width-2, b->height-2, color);
+        putrectf(b->abs_x+1, b->abs_y+1, b->width-2, b->height-2, b->bg);
 
         putline(b->abs_x, b->abs_y, b->abs_x+b->width, b->abs_y, 0xF);
         putline(b->abs_x, b->abs_y, b->abs_x, b->abs_y+b->height, 0xF);

@@ -49,6 +49,7 @@ void putrect_trans(int x1, int y1, int x2, int y2, int color);
 void putline(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t color);
 void dputline(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t color);
 void putrect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t color);
+void dputrect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t color);
 void putrectf(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t color);
 void bres_circle(int xc, int yc, int x, int y, uint8_t color);
 void dputcircle(uint16_t x, uint16_t y, uint16_t radius, uint8_t color);
