@@ -154,6 +154,11 @@ sys_devctl(void)
     		return 0;
 	}
 
+  }else
+  if (dev == 2) { // keyboard
+	if (sig == 0) { // keypress?
+		return kbdgetc();
+	}
   }
   return -1;
 }

@@ -674,6 +674,13 @@ initgraphics(int x, int y, int width, int height, char * s, int c)
     save_to_window_buffer();
 }
 
+// 0xFF if no key.
+char 
+getkey()
+{
+	return (char)devctl(2, 0, 0);
+}
+
 void
 checkbar(int x, int y)
 {
