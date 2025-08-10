@@ -66,4 +66,5 @@ void flush_background();
 void mouser();
 void putimage(int x, int y, int width, int height, char bits[], int c);
 void clearscreen();
+void move_window(int new_x, int new_y);
 #endif

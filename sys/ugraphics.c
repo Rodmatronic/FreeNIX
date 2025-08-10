@@ -4,10 +4,12 @@
 #include "../include/fcntl.h"
 
 typedef struct {
-    int x, y;
+    int rel_x, rel_y;
+    int abs_x, abs_y;
     int width, height;
-    int pressed;
-    int clicked;
+    int pressed, clicked;
+    char * text;
+    int fg, bg;
 } Button;
 
 #define MAX_ENTRIES 50
@@ -41,6 +43,7 @@ int middleclick, old_middleclick, middledown;
 
 static uint8_t *background = NULL;
 static uint8_t *saved_bg = NULL;
+static uint8_t *window_buffer = NULL;
 
 int result;
 int dx, dy;
@@ -85,6 +88,52 @@ static char cursormask_bits[] = {
   0x0F, 0x04, 0x07, 0x04, 0x03, 0x04, 0x1F, 0x04, 0x9F, 0x04, 0xCF, 0x05,
   0xCF, 0x07, 0xE7, 0x07, 0xE7, 0x07, 0xFF, 0x07
 };
+
+void init_window_buffer() {
+    if (window_buffer) free(window_buffer);
+    window_buffer = malloc(win.width * win.height);
+}
+
+void save_to_window_buffer() {
+    for (int y = 0; y < win.height; y++) {
+        for (int x = 0; x < win.width; x++) {
+            int screen_x = win.x + x;
+            int screen_y = win.y + y;
+            if (screen_x >= 0 && screen_x < VGA_MAX_WIDTH &&
+                screen_y >= 0 && screen_y < VGA_MAX_HEIGHT) {
+                window_buffer[y * win.width + x] =
+                    background[screen_y * VGA_MAX_WIDTH + screen_x];
+            }
+        }
+    }
+}
+
+void move_window(int new_x, int new_y) {
+    save_to_window_buffer();
+
+    putrectf(win.x, win.y, win.width, win.height, 0x8);
+    flush_background();
+
+    int old_x = win.x;
+    int old_y = win.y;
+    win.x = new_x;
+    win.y = new_y;
+
+    update_button_positions();
+    for (int y = 0; y < win.height; y++) {
+        for (int x = 0; x < win.width; x++) {
+            int screen_x = new_x + x;
+            int screen_y = new_y + y;
+            if (screen_x >= 0 && screen_x < VGA_MAX_WIDTH &&
+                screen_y >= 0 && screen_y < VGA_MAX_HEIGHT) {
+                background[screen_y * VGA_MAX_WIDTH + screen_x] =
+                    window_buffer[y * win.width + x];
+            }
+        }
+    }
+    redraw_buttons();
+    flush_background();
+}
 
 void draw_cursor(int x, int y) {
     save_background(x, y);
@@ -202,7 +251,6 @@ void dputline(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t color)
     }
 }
 
-
 void putrect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t color) {
     putline(x, y, x, y + height, color);
     putline(x, y, x + width, y, color);
@@ -299,6 +347,7 @@ void graphical_putc(int x, int y, char c, uint8_t color) {
     }
 }
 
+
 void graphical_puts(int x, int y, const char* str, uint8_t color) {
     int current_x = x;
 
@@ -309,24 +358,38 @@ void graphical_puts(int x, int y, const char* str, uint8_t color) {
     }
 }
 
+void bputs(int x, int y, const char* str, uint8_t color) {
+    int current_x = x;
+
+    while (*str != '\0') {
+        graphical_putc(current_x, y, *str, color);
+        current_x += FONT_WIDTH;
+        str++;
+    }
+}
+
 int putbutton(int x, int y, int width, int height, const char* text, int color, int fg) {
     if (button_count >= MAX_BUTTONS) return -1;
 
     Button *b = &buttons[button_count];
-    b->x = win.x+x;
-    b->y = win.y+y;
+    b->rel_x = x;
+    b->rel_y = y;
+    b->abs_x = win.x + x;
+    b->abs_y = win.y + y;
     b->width = width;
     b->height = height;
     b->pressed = 0;
     b->clicked = 0;
+    b->bg = color;
+    b->fg = fg;
+    b->text = text;
 
-    // Draw the button
-    putrectf(win.x+x+1, win.y+y+1, width-2, height-2, color);
-    putline(win.x+x, win.y+y, win.x+x+width, win.y+y, 0xF);
-    putline(win.x+x, win.y+y, win.x+x, win.y+y+height, 0xF);
-    putline(win.x+x+width, win.y+y, win.x+x+width, win.y+y+height, 0x8);
-    putline(win.x+x, win.y+y+height, win.x+x+width, win.y+y+height, 0x8);
-    graphical_puts(x + 3, y + height/2 - 7, text, fg);
+    putrectf(b->abs_x+1, b->abs_y+1, width-2, height-2, color);
+    putline(b->abs_x, b->abs_y, b->abs_x+width, b->abs_y, 0xF);
+    putline(b->abs_x, b->abs_y, b->abs_x, b->abs_y+height, 0xF);
+    putline(b->abs_x+width, b->abs_y, b->abs_x+width, b->abs_y+height, 0x8);
+    putline(b->abs_x, b->abs_y+height, b->abs_x+width, b->abs_y+height, 0x8);
+    bputs(b->abs_x + 3, b->abs_y + height/2 - 7, text, fg);
 
     return button_count++;
 }
@@ -342,8 +405,8 @@ void update_buttons(int x, int y, int leftclick, int old_leftclick) {
         pressed_button_id = -1;
         for (int i = 0; i < button_count; i++) {
             Button *b = &buttons[i];
-            if (x >= b->x && x < b->x + b->width &&
-                y >= b->y && y < b->y + b->height) {
+            if (x >= b->abs_x && x < b->abs_x + b->width &&
+                y >= b->abs_y && y < b->abs_y + b->height) {
                 pressed_button_id = i;
                 b->pressed = 1;
 
@@ -365,11 +428,33 @@ void update_buttons(int x, int y, int leftclick, int old_leftclick) {
 //        graphical_puts(b->x + 3, b->y + b->height/2 - 5, "", 0x00);
 
         // Check if still within button bounds
-        if (x >= b->x && x < b->x + b->width &&
-            y >= b->y && y < b->y + b->height) {
+        if (x >= b->abs_x && x < b->abs_x + b->width &&
+            y >= b->abs_y && y < b->abs_y + b->height) {
             b->clicked = 1;
         }
         pressed_button_id = -1;
+    }
+}
+
+void redraw_buttons() {
+    for (int i = 0; i < button_count; i++) {
+        Button *b = &buttons[i];
+        uint8_t color = b->pressed ? 0x0F : 0x07;
+        putrectf(b->abs_x+1, b->abs_y+1, b->width-2, b->height-2, color);
+
+        putline(b->abs_x, b->abs_y, b->abs_x+b->width, b->abs_y, 0xF);
+        putline(b->abs_x, b->abs_y, b->abs_x, b->abs_y+b->height, 0xF);
+        putline(b->abs_x+b->width, b->abs_y, b->abs_x+b->width, b->abs_y+b->height, 0x8);
+        putline(b->abs_x, b->abs_y+b->height, b->abs_x+b->width, b->abs_y+b->height, 0x8);
+        bputs(b->abs_x + 3, b->abs_y + b->height/2 - 7, b->text, b->fg);
+    }
+}
+
+void update_button_positions() {
+    for (int i = 0; i < button_count; i++) {
+        Button *b = &buttons[i];
+        b->abs_x = win.x + b->rel_x;
+        b->abs_y = win.y + b->rel_y;
     }
 }
 
@@ -563,6 +648,7 @@ initgraphics(int x, int y, int width, int height, char * s, int c)
 
     if (saved_bg) free(saved_bg);
     saved_bg = malloc(cursor_width * cursor_height);
+    init_window_buffer();
 
     putrectf(win.x+0, win.y+0, win.width, 24, 0x7);
     putline(win.x+0, win.y+0, win.x+win.width, win.y+0, 0xF);
@@ -572,6 +658,7 @@ initgraphics(int x, int y, int width, int height, char * s, int c)
     putline(win.x+0, win.y+24, win.x+win.width, win.y+24, 0x08);
     putrectf(win.x+0, win.y+25, win.width, win.height, c);
     putrect(win.x+0, win.y+0, win.width-1, win.height-1, 0xF);
+    save_to_window_buffer();
 }
 
 void
