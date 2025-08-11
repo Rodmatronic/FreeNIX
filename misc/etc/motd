@@ -1,2 +1,20 @@
 Welcome to EXNIX!
+
+The message of the day file will be used to explain big kernel changes.
+
+Kernel NOTES:
+ - include/param.h: FSSIZE _ONLY_ SUPPORTS up to 5000 blocks on memfs, any
+   more will result in serious undocumented issues. Please seriously
+   consider code size when writing applications. Currently, 2000 is just
+   below enough to compile. We have a _finite_ amount of kernel memfs space
+   without some serious refactoring.
+ - to compile using memfs, use 'make clean; make qemu-memfs'. Make clean is
+   important here, since without it, mkfs will not rebuild the memfs.
+
+Memfs should allow the kernel to be booted on pretty much anything, all you
+need is something to emulate IDE (only the master disk) and boot this image.
+The kernel image itself contains the filesystem, which I find neat.
+
+Although, SMP is still required. Removing that will be annoying.
+
 [Edit /etc/motd to change this login announcement]

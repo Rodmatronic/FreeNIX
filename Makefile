@@ -105,7 +105,7 @@ xv6.img: $S/bootblock $S/kernel
 	dd if=$S/bootblock of=xv6.img conv=notrunc
 	dd if=$S/kernel of=xv6.img seek=1 conv=notrunc
 
-$S/xv6memfs.img: $S/bootblock $S/kernelmemfs
+xv6memfs.img: $S/bootblock $S/kernelmemfs
 	dd if=/dev/zero of=xv6memfs.img count=10000
 	dd if=$S/bootblock of=xv6memfs.img conv=notrunc
 	dd if=$S/kernelmemfs of=xv6memfs.img seek=1 conv=notrunc
@@ -144,8 +144,8 @@ $S/kernel: $(OBJS) $S/entry.o $S/entryother $S/initcode $S/kernel.ld
 MEMFSOBJS = $(filter-out $S/ide.o,$(OBJS)) $S/memide.o
 $S/kernelmemfs: $(MEMFSOBJS) $S/entry.o $S/entryother $S/initcode $S/kernel.ld $S/fs.img
 	$(LD) $(LDFLAGS) -T $S/kernel.ld -o $S/kernelmemfs $S/entry.o  $(MEMFSOBJS) -b binary $S/initcode $S/entryother $S/fs.img
-	$(OBJDUMP) -S kernelmemfs > kernelmemfs.asm
-	$(OBJDUMP) -t kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernelmemfs.sym
+	$(OBJDUMP) -S $S/kernelmemfs > $S/kernelmemfs.asm
+	$(OBJDUMP) -t $S/kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $S/kernelmemfs.sym
 
 tags: $(OBJS) $S/entryother.S $S/_init
 	etags *.S *.c
