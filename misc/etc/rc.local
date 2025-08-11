@@ -1,0 +1,5 @@
+echo -n 'starting local daemons:'
+
+# Put local daemons here...
+
+echo '.'

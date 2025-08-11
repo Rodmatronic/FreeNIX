@@ -247,6 +247,7 @@ for (i = 2; i < argc; i++) {
 	"motd",
 	"passwd",
 	"rc",
+	"rc.local",
 	"stressfs",
 	"usertests",
 	NULL

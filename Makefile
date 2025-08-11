@@ -212,7 +212,7 @@ UPROGS=\
 	$C/_hexdump\
 
 $S/fs.img: $S/mkfs $M/README $(UPROGS)
-	$S/mkfs $S/fs.img $M/etc/rc $M/etc/passwd $M/etc/group $M/etc/motd $M/changelog $M/cd.1 $M/COPYRIGHT $(UPROGS)
+	$S/mkfs $S/fs.img $M/etc/rc $M/etc/rc.local $M/etc/passwd $M/etc/group $M/etc/motd $M/changelog $M/cd.1 $M/COPYRIGHT $(UPROGS)
 
 -include *.d
 
