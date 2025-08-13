@@ -336,7 +336,7 @@ commands()
                 if(!wrapp ||
                   ((io = open(file,1)) == -1) ||
                   ((lseek(io, 0L, 2)) == -1))
-                        if ((io = creat(file, 0666)) < 0)
+                        if ((io = open(file, O_CREATE | O_RDWR)) < 0)
                                 error(file);
                 wrapp = 0;
                 putfile();
