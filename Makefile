@@ -185,6 +185,7 @@ UPROGS=\
 	$C/_date\
 	$C/_debugger\
 	$C/_echo\
+	$C/_ed\
 	$C/_find\
 	$C/_grep\
 	$C/_init\

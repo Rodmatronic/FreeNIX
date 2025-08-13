@@ -219,6 +219,7 @@ for (i = 2; i < argc; i++) {
 	"date",
 	"debugger",
 	"echo",
+	"ed",
 	"find",
 	"grep",
 	"hexdump",
