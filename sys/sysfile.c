@@ -530,7 +530,6 @@ sys_open(void)
 
   if(omode & O_CREATE){
     ip = create(path, S_IFREG, 0, 0);
-    ip->lmtime = epoch_mktime();
     if(ip == 0){
       end_op();
       return -1;
@@ -548,10 +547,9 @@ sys_open(void)
       return -1;
     }
   }
-
   if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
     if(f){
-	    ip->lmtime = epoch_mktime();
+      ip->lmtime = epoch_mktime();
       fileclose(f);
     }
     iunlockput(ip);

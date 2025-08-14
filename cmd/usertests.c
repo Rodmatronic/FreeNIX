@@ -1027,7 +1027,6 @@ subdir(void)
     printf("open (unlinked) dd/dd/ff succeeded!\n");
     exit(1);
   }
-  printf("this fails currently\n");
   if(open("dd/ff/ff", O_CREATE|O_RDWR) >= 0){
     printf("create dd/ff/ff succeeded!\n");
     exit(1);
@@ -1748,14 +1747,13 @@ int
 main(int argc, char *argv[])
 {
   char c;
-  printf("This will mess up your disk. Proceed with caution.\nContinue? (y/n): ");
+  printf("This will mess up your disk. Proceed with caution.\nContinue? (y/N): ");
   c = getchar();
   if (c == 'y' || c == 'Y') {
   } else if (c == 'n' || c == 'N') {
     exit(0);
   } else {
-    fprintf(stderr, "Invalid choice.\n");
-    exit(1);
+    exit(0);
   }
   printf("usertests starting\n");
 

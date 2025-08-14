@@ -92,6 +92,33 @@ int	wrapp;
 unsigned nlall = 128;
 
 char *
+mktemp(as)
+char *as;
+{
+	register char *s;
+	register unsigned pid;
+	register i;
+
+	pid = getpid();
+	s = as;
+	while (*s++)
+		;
+	s--;
+	while (*--s == 'X') {
+		*s = (pid%10) + '0';
+		pid /= 10;
+	}
+	s++;
+	i = 'a';
+//	while (access(as, 0) != -1) {
+		if (i=='z')
+			return("/");
+		*s = i++;
+//	}
+	return(as);
+}
+
+char *
 strncpy (char *s1, const char *s2, size_t n)
 {
   size_t size = strlen (s2);
@@ -150,7 +177,7 @@ char **argv;
 		globp = "r";
 	}
 	zero = (int *)malloc(nlall*sizeof(int));
-//	tfname = mktemp(template);
+	tfname = mktemp(template);
 	init();
 //	setjmp(savej);
 	commands();
