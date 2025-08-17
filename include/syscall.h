@@ -31,3 +31,4 @@
 #define SYS_stty   30
 #define SYS_lseek  31
 #define SYS_devctl 32
+#define SYS_stime  33

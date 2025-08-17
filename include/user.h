@@ -19,6 +19,9 @@ struct rtcdate;
 
 extern char *month[];
 
+extern int days_in_month[];
+extern int days_in_month_leap[];
+
 struct tm {
   int tm_sec;   // seconds (0-59)
   int tm_min;   // minutes (0-59)
@@ -31,13 +34,6 @@ struct tm {
   int tm_isdst;
 };
 
-/*struct ttyb {
-    int speeds;
-    char erase, kill;
-    int tflags;
-};*/
-
-//int gtty();
 int stty(struct ttyb *);
 
 #define SEEK_SET 0
@@ -76,6 +72,7 @@ int uname(struct utsname *);
 int sync(void);
 int lseek(int, int, int);
 int devctl(int dev, int sig, int data);
+int stime(unsigned long);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -118,5 +115,6 @@ char* crypt(char *pw, char *salt);
 // udate.c
 void epoch_to_tm(unsigned long epoch, struct tm *tm);
 long mktime(struct tm * tm);
+int isleapyear(int);
 
 #endif

@@ -115,6 +115,7 @@ extern int sys_sync(void);
 extern int sys_stty(void);
 extern int sys_lseek(void);
 extern int sys_devctl(void);
+extern int sys_stime(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -149,6 +150,7 @@ static int (*syscalls[])(void) = {
 [SYS_stty]    sys_stty,
 [SYS_lseek]   sys_lseek,
 [SYS_devctl]  sys_devctl,
+[SYS_stime]   sys_stime,
 };
 
 void

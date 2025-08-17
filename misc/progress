@@ -13,7 +13,7 @@ hexdump		rod	---o- // Lacking options
 init		xv6	-o--- // Yet to be finished
 kill		V7	----o
 ln		V7	----o
-login		V6	---o- // Simply lacking CRYPT
+login		V6	---o- // Bad login bug!
 ls		V7	---o- // Unfinished -l
 man		rod	---o- // Missing support for bold, italic, etc
 mkdir		xv6	----o

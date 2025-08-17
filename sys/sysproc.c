@@ -55,6 +55,14 @@ sys_uname(void)
   return 0;
 }
 
+int sys_stime(void) {
+    unsigned long epoch;
+    if (argint(0, &epoch) < 0)
+        return -1;
+    set_kernel_time((unsigned long)epoch);
+    return 0;
+}
+
 // seconds since epoch
 int
 sys_time(void)
