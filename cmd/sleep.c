@@ -19,7 +19,7 @@ char **argv;
 		exit(2);
 	}
 	s = argv[1];
-	while(c = *s++) {
+	while( (c = *s++) ) {
 		if(c<'0' || c>'9') {
 			fprintf(stderr, "sleep: bad character in argument\n");
 			exit(2);

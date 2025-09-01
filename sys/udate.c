@@ -57,7 +57,7 @@ void
 epoch_to_tm(unsigned long epoch, struct tm *tm)
 {
     const int seconds_per_minute = 60;
-    const int epoch_year = 1970;
+//    const int epoch_year = 1970;
 
     tm->tm_sec = epoch % seconds_per_minute;
     epoch /= seconds_per_minute;

@@ -32,7 +32,7 @@ char **argv;
 //	char loginbuf[128];
 	register char *namep, *np;
 	char pwbuf[9];
-	int t, sflags, f, c, uid, gid;
+	int t, f, c, uid, gid;
 
 //	signal(3, 1);
 //	signal(2, 1);
@@ -73,7 +73,6 @@ char **argv;
 		goto bad;
 	np = colon(pbuf);
 	if (*np!=':') {
-		sflags = ttyb.tflags;
 		ttyb.tflags &= ~ECHO;
 		stty(&ttyb);
 		write(1, "Password: ", 10);

@@ -112,16 +112,16 @@ int	lower;
 main(argc, argv)
 char **argv;
 {
-	register struct tab *tabp;
-	register tname;
+//	register struct tab *tabp;
+//	register tname;
 
 /*
 	signal(SIGINT, 1);
 	signal(SIGQIT, 0);
 */
-	tname = '0';
-	if (argc > 1)
-		tname = *argv[1];
+//	tname = '0';
+//	if (argc > 1)
+//		tname = *argv[1];
 	for (;;) {
 /*		for(tabp = itab; tabp < &itab[NITAB]; tabp++)
 			if(tabp->tname == tname)
@@ -151,7 +151,7 @@ char **argv;
 			execl("/bin/login", "login", 0);
 //			exit(1);
 //		}
-		tname = tabp->nname;
+		//tname = tabp->nname;
 	}
 }
 

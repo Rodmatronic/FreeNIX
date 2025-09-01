@@ -92,7 +92,9 @@ main()
 		}
 		save_background(dx, dy);
 	}
-	if ((dx > win.x && dy > win.y && dx < win.x+win.width - 25 && dy < win.y + 25 || leftclick_oldbar == 1) && leftclick_oldwindow == 0){
+	if (((dx > win.x && dy > win.y && dx < win.x + win.width - 25 && dy < win.y + 25)
+	     || leftclick_oldbar == 1)
+	    && leftclick_oldwindow == 0) {
 		if (leftclick) {
 			wx = dx - rx;
 			wy = dy - ry;

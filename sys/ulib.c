@@ -22,7 +22,6 @@ getpass(char *prompt)
   char *p;
   int c;
   struct ttyb ttyb;
-  int fd = 0;               // stdin
 
   write(1, prompt, strlen(prompt));
   ttyb.tflags &= ~ECHO;
@@ -141,7 +140,7 @@ int seek(int fd, int offset, int whence) {
     return lseek(fd, offset, whence);
 }
 
-int execl(const char *path, const char *arg0, ...) {
+int execl(char *path, const char *arg0, ...) {
   va_list ap;
   const char *argv[512];
   int argc = 0;

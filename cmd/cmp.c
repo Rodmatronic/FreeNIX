@@ -4,7 +4,6 @@
 #include "../include/fs.h"
 #include "../include/fcntl.h"
 
-static char sccsid[] = "@(#)cmp.c	1.3";
 /*
 **	compare two files
 */

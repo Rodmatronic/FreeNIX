@@ -57,8 +57,7 @@ sys_uname(void)
 
 int sys_stime(void) {
     unsigned long epoch;
-    int uid;
-    if (argint(0, &epoch) < 0)
+    if (argint(0, (int*)&epoch) < 0)
         return -1;
     struct proc *p = myproc();
     if (p->uid != 0) return 1; // Operation not permitted

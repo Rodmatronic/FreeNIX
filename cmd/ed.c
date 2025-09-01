@@ -13,7 +13,6 @@
 #define	ESIZE	128
 #define	GBSIZE	256
 #define	NBRA	5
-#define	EOF	-1
 #define	KSIZE	9
 
 #define	CBRA	1
@@ -91,6 +90,34 @@ int	fchange;
 int	wrapp;
 unsigned nlall = 128;
 
+void newline();
+void commands();
+void filename(int comm);
+void putfile();
+void error(char* s);
+void delete();
+void callunix();
+void rdelete(int* addr1, int* addr2);
+void blkio(int iblock, char* ibuff, int (*iofcn)());
+void init();
+void makekey(char* a, char* b);
+void global(int k);
+void join();
+void substitute(int inglob);
+void dosub();
+void move(int cflag);
+void crblock(char* permp, char* buf, int nchar, long startn);
+void putchr(int ac);
+void edputs(register char* sp);
+void putd();
+void reverse(register int* a1, register int* a2);
+void compile(int aeof);
+void setdot();
+void setall();
+void setnoaddr();
+void nonzero();
+void exfile();
+
 char *
 mktemp(as)
 char *as;
@@ -143,7 +170,7 @@ main(argc, argv)
 char **argv;
 {
 	register char *p1, *p2;
-        void (*oldintr)(int);
+//        void (*oldintr)(int);
 
 	argv++;
 	while (argc > 1 && **argv=='-') {
@@ -172,7 +199,7 @@ char **argv;
 	if (argc>1) {
 		p1 = *argv;
 		p2 = savedfile;
-		while (*p2++ = *p1++)
+		while ((*p2++ = *p1++))
 			;
 		globp = "r";
 	}
@@ -184,6 +211,7 @@ char **argv;
 	quit(0);
 }
 
+void
 commands()
 {
 	int getfile(), gettty();
@@ -505,6 +533,7 @@ address()
 	}
 }
 
+void
 setdot()
 {
 	if (addr2 == 0)
@@ -513,6 +542,7 @@ setdot()
 		error(Q);
 }
 
+void
 setall()
 {
 	if (addr2==0) {
@@ -524,18 +554,21 @@ setall()
 	setdot();
 }
 
+void
 setnoaddr()
 {
 	if (addr2)
 		error(Q);
 }
 
+void
 nonzero()
 {
 	if (addr1<=zero || addr2>dol)
 		error(Q);
 }
 
+void
 newline()
 {
 	register c;
@@ -552,7 +585,8 @@ newline()
 	error(Q);
 }
 
-filename(comm)
+void
+filename(int comm)
 {
 	register char *p1, *p2;
 	register c;
@@ -564,7 +598,7 @@ filename(comm)
 		if (*p1==0 && comm!='f')
 			error(Q);
 		p2 = file;
-		while (*p2++ = *p1++)
+		while ((*p2++ = *p1++))
 			;
 		return;
 	}
@@ -584,11 +618,12 @@ filename(comm)
 	if (savedfile[0]==0 || comm=='e' || comm=='f') {
 		p1 = savedfile;
 		p2 = file;
-		while (*p1++ = *p2++)
+		while ((*p1++ = *p2++))
 			;
 	}
 }
 
+void
 exfile()
 {
 	close(io);
@@ -652,7 +687,7 @@ int
 getchr()
 {
 	char c;
-	if (lastc=peekc) {
+	if ((lastc=peekc)) {
 		peekc = 0;
 		return(lastc);
 	}
@@ -821,7 +856,7 @@ int (*f)();
 void
 callunix()
 {
-	register void (*savint)(int);
+//	register void (*savint)(int);
         int pid, rpid;
 	int retcode;
 
@@ -907,7 +942,7 @@ getline(tl)
 	bp = getblock(tl, READ);
 	nl = nleft;
 	tl &= ~0377;
-	while (*lp++ = *bp++)
+	while ((*lp++ = *bp++))
 		if (--nl == 0) {
 			bp = getblock(tl+=0400, READ);
 			nl = nleft;
@@ -928,7 +963,7 @@ edputline()
 	bp = getblock(tl, WRITE);
 	nl = nleft;
 	tl &= ~0377;
-	while (*bp = *lp++) {
+	while ((*bp = *lp++)) {
 		if (*bp++ == '\n') {
 			*--bp = 0;
 			linebp = lp;
@@ -1089,13 +1124,13 @@ join()
 	gp = genbuf;
 	for (a1=addr1; a1<=addr2; a1++) {
 		lp = getline(*a1);
-		while (*gp = *lp++)
+		while ((*gp = *lp++))
 			if (gp++ >= &genbuf[LBSIZE-2])
 				error(Q);
 	}
 	lp = linebuf;
 	gp = genbuf;
-	while (*lp++ = *gp++)
+	while ((*lp++ = *gp++))
 		;
 	*addr1 = edputline();
 	if (addr1<addr2)
@@ -1187,7 +1222,7 @@ getsub()
 	p1 = linebuf;
 	if ((p2 = linebp) == 0)
 		return(EOF);
-	while (*p1++ = *p2++)
+	while ((*p1++ = *p2++))
 		;
 	linebp = 0;
 	return(0);
@@ -1204,7 +1239,7 @@ dosub()
 	rp = rhsbuf;
 	while (lp < loc1)
 		*sp++ = *lp++;
-	while (c = *rp++&0377) {
+	while ((c = *rp++&0377)) {
 		if (c=='&') {
 			sp = place(sp, loc1, loc2);
 			continue;
@@ -1218,12 +1253,12 @@ dosub()
 	}
 	lp = loc2;
 	loc2 = sp - genbuf + linebuf;
-	while (*sp++ = *lp++)
+	while ((*sp++ = *lp++))
 		if (sp >= &genbuf[LBSIZE])
 			error(Q);
 	lp = linebuf;
 	sp = genbuf;
-	while (*lp++ = *sp++)
+	while ((*lp++ = *sp++))
 		;
 }
 
@@ -1453,7 +1488,7 @@ int *addr;
 			return(0);
 		p1 = linebuf;
 		p2 = genbuf;
-		while (*p1++ = *p2++)
+		while ((*p1++ = *p2++))
 			;
 		locs = p1 = loc2;
 	} else {
@@ -1730,7 +1765,7 @@ long startn;
 int
 edgetkey()
 {
-	void (*sig)(int);
+//	void (*sig)(int);
 	register char *p;
 	register c;
 

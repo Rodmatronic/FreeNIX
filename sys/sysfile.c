@@ -480,7 +480,8 @@ create(char *path, short type, short major, short minor)
   if ((ip = dirlookup(dp, name, 0)) != 0) {
     iunlockput(dp);
     ilock(ip);
-    if ((type & S_IFMT) == S_IFREG && (ip->mode & S_IFMT) == S_IFREG || (ip->mode & S_IFMT) == S_IFCHR) {
+    if (((type & S_IFMT) == S_IFREG && (ip->mode & S_IFMT) == S_IFREG) ||
+		    ((ip->mode & S_IFMT) == S_IFCHR)) {
         return ip;
     }
     iunlockput(ip);

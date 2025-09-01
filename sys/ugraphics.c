@@ -119,8 +119,6 @@ void move_window(int new_x, int new_y) {
     putrectf(win.x, win.y, win.width, win.height, 0x8);
     flush_background();
 
-    int old_x = win.x;
-    int old_y = win.y;
     win.x = new_x;
     win.y = new_y;
 
@@ -524,7 +522,7 @@ static int read_window_entries(struct WindowEntry *entries, int max) {
 
     int count = 0;
     char *p = buf;
-    char *line;
+//    char *line;
 
     while (count < max && *p) {
         if (*p == '\n') {
@@ -532,7 +530,6 @@ static int read_window_entries(struct WindowEntry *entries, int max) {
             continue;
         }
 
-        line = p;
         int pid = parse_int(&p);
         if (pid < 0 || *p != '-') break;
         p++;
@@ -704,7 +701,7 @@ alert(char * msg)
 
 openprogram(char * name)
 {
-	int pid, wpid;
+	int pid;
 	char * argv[] = {name, 0};
 	pid = fork();
 	if(pid < 0){
@@ -789,7 +786,6 @@ char bits[];
     y++;
     x = 0;
   }
-  return 0;
 }
 
 void

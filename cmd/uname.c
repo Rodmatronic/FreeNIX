@@ -8,7 +8,6 @@ main(argc, argv)
 char **argv;
 int argc;
 {
-	register i;
 	int	sflg=1, nflg=0, rflg=0, vflg=0, mflg=0, errflg=0;
 	int	optlet;
 

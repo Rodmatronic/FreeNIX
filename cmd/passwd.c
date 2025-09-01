@@ -76,7 +76,7 @@ tryagn:
 	ok = 0;
 	flags = 0;
 	p = pwbuf;
-	while(c = *p++){
+	while( (c = *p++) ){
 		if(c>='a' && c<='z') flags |= 2;
 		else if(c>='A' && c<='Z') flags |= 4;
 		else if(c>='0' && c<='9') flags |= 1;
