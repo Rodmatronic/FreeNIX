@@ -58,14 +58,14 @@ char *argv[];
 		goto bex;
 		}
 	endpwent();
-	if (pwd->pw_passwd[0] && u != 0) {
-		strcpy(pwbuf, getpass("Old password:"));
-		pw = crypt(pwbuf, pwd->pw_passwd);
-		if(strcmp(pw, pwd->pw_passwd) != 0) {
-			printf("Sorry.\n");
-			goto bex;
-		}
-	}
+//	if (pwd->pw_passwd[0] && u != 0) {
+//		strcpy(pwbuf, getpass("Old password:"));
+//		pw = crypt(pwbuf, pwd->pw_passwd);
+//		if(strcmp(pw, pwd->pw_passwd) != 0) {
+//			printf("Sorry.\n");
+//			goto bex;
+//		}
+//	}
 tryagn:
 	strcpy(pwbuf, getpass("New password:"));
 	pwlen = strlen(pwbuf);
