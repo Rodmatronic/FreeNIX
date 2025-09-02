@@ -7,6 +7,7 @@ cp		V6	----o
 cron		V6	----o
 date		pou	---o- // timezones!
 dd		V7	----o
+du		rod	---o- // '.' doesnt work
 echo		sysv	----o
 find		rod	----o
 getty		V6	-o--- // Does bare minimum

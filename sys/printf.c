@@ -95,7 +95,9 @@ vprintfmt(putch_fn putch, void *ctx, const char *fmt, va_list ap)
 
             if(c == 'd') {
                 printint(putch, ctx, va_arg(ap, int), 10, 1, width, zero_pad);
-            } else if(c == 'x' || c == 'p') {
+            } else if(c == 'u') {
+		printint(putch, ctx, va_arg(ap, int), 10, 0, width, zero_pad);
+	    } else if(c == 'x' || c == 'p') {
                 printint(putch, ctx, va_arg(ap, int), 16, 0, width, zero_pad);
             } else if(c == 's') {
                 s = va_arg(ap, char*);
@@ -119,7 +121,6 @@ vprintfmt(putch_fn putch, void *ctx, const char *fmt, va_list ap)
     }
 }
 
-// Helper for file descriptor output
 static void
 putch_fd(char ch, void *ctx)
 {
@@ -127,7 +128,6 @@ putch_fd(char ch, void *ctx)
     putc(*fd, ch);
 }
 
-// Helper for buffer output
 static void
 putch_buf(char ch, void *ctx)
 {
@@ -223,7 +223,6 @@ int vsscanf(const char *s, const char *fmt, va_list ap) {
 
     switch (*fmt) {
       case 'd': {
-        // Skip whitespace
         while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')
           p++;
         if (*p == '\0') goto end;

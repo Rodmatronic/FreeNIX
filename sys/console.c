@@ -112,7 +112,7 @@ vprintf(int fd, const char *fmt, va_list ap)
       }
       if(c == 'd') {
         printint((uint)va_arg(ap, int), 10, 1, width, zero_pad);
-      } else if(c == 'u') {  // NEW: Handle %u
+      } else if(c == 'u') {
         printint(va_arg(ap, uint), 10, 0, width, zero_pad);
       } else if(c == 'x' || c == 'p') {
         printint(va_arg(ap, uint), 16, 0, width, zero_pad);
@@ -171,21 +171,6 @@ panic(char *fmt, ...)
   va_list ap;
 
   cli();
-/*  int x1 = 0;
-  int y1 = 0;
-  int x2 = VGA_MAX_WIDTH;
-  int y2 = VGA_MAX_HEIGHT;
-    if (x1 > x2) { int tmp = x1; x1 = x2; x2 = tmp; }
-    if (y1 > y2) { int tmp = y1; y1 = y2; y2 = tmp; }
-
-    for (int y = y1; y <= y2; y++) {
-        for (int x = x1; x <= x2; x++) {
-            if ((x + y) % 2 == 0) {
-                putpixel(x, y, 0xF);
-            }
-        }
-    }*/
-
   cons.locking = 0;   // Disable console locking during panic
   cprintf("panic: ");
 
@@ -214,7 +199,6 @@ static char console_buffer[CONSOLE_COLS * CONSOLE_ROWS];
 static char old_console_buffer[CONSOLE_COLS * CONSOLE_ROWS];
 static int buffer_index = 0;
 
-// Initialize buffer with spaces
 void console_buffer_init(void) {
     for (int i = 0; i < CONSOLE_COLS * CONSOLE_ROWS; i++) {
         console_buffer[i] = ' ';
@@ -246,54 +230,55 @@ void vga_scroll(void) {
 //static int cursor_visible = 1;
 static int cursor_position = 0;
 
-// Function to draw/erase cursor
 void drawcursor(int x, int y, int visible) {
     if (visible) {
-        // Draw solid white block (0xDB) for cursor
         const uint8_t* glyph = &fontdata_8x8[0xDB * FONT_HEIGHT];
         for (int row = 0; row < FONT_HEIGHT; row++) {
             uint8_t line = glyph[row];
             for (int col = 0; col < FONT_WIDTH; col++) {
                 if (line & (1 << (7 - col))) {
-                    putpixel(x + col, y + row, color); // White
+                    putpixel(x + col, y + row, color);
                 }
             }
         }
     } else {
-        // Erase cursor by drawing underlying character
         char c = console_buffer[cursor_position];
         if (c != ' ' && c != 0) {
-            graphical_putc(x, y, c, 0x0F); // Redraw character
+            graphical_putc(x, y, c, 0x0F);
         } else {
-            // Clear area if space or null
             for (int row = 0; row < FONT_HEIGHT; row++) {
                 for (int col = 0; col < FONT_WIDTH; col++) {
-                    putpixel(x + col, y + row, bg_color); // Black
+                    putpixel(x + col, y + row, bg_color);
                 }
             }
         }
     }
 }
 
-// Modified cgaputc
 static void cgaputc(int c) {
     int cursor_x = (cursor_position % CONSOLE_COLS) * FONT_WIDTH;
     int cursor_y = (cursor_position / CONSOLE_COLS) * FONT_HEIGHT;
     drawcursor(cursor_x, cursor_y, 0);
 
     if (c == '\n') {
-        // Handle newline: move to next line start
         int current_row = buffer_index / CONSOLE_COLS;
         buffer_index = (current_row + 1) * CONSOLE_COLS;
     } else if (c == '\r') {
-        // Handle carriage return: move to line start
         buffer_index = (buffer_index / CONSOLE_COLS) * CONSOLE_COLS;
+    } else if(c == '\t'){
+    	for(int i = 0; i < 8; i++){
+        	console_buffer[buffer_index++] = ' ';
+	        int x = (buffer_index - 1) % CONSOLE_COLS;
+	        int y = (buffer_index - 1) / CONSOLE_COLS;
+	        graphical_putc(x * FONT_WIDTH, y * FONT_HEIGHT, ' ', color);
+	        if(buffer_index >= CONSOLE_COLS * CONSOLE_ROWS)
+	            vga_scroll();
+	    }
     } else if (c == BACKSPACE) {
         if (buffer_index > 0) {
             buffer_index--;
             console_buffer[buffer_index] = ' '; // Clear in buffer
             
-            // Erase entire character cell
             int x_pos = (buffer_index % CONSOLE_COLS) * FONT_WIDTH;
             int y_pos = (buffer_index / CONSOLE_COLS) * FONT_HEIGHT;
             for (int row = 0; row < FONT_HEIGHT; row++) {
@@ -303,23 +288,19 @@ static void cgaputc(int c) {
             }
         }
     } else {
-        // Store printable character
         console_buffer[buffer_index] = c;
         buffer_index++;
     }
 
-    // Wrap buffer index
     if (buffer_index >= CONSOLE_COLS * CONSOLE_ROWS) {
         vga_scroll();
     }
 
-    // Simple screen update (only handles printable chars)
-    if (c > 0 && c != '\n' && c != '\r' && c != BACKSPACE) {
+    if (c > 0 && c != '\n' && c != '\r' && c != BACKSPACE && c != '\t') {
         int x = (buffer_index - 1) % CONSOLE_COLS;
         int y = (buffer_index - 1) / CONSOLE_COLS;
         graphical_putc(x * FONT_WIDTH, y * FONT_HEIGHT, c, color);
     }
-    // Update cursor position and draw
     cursor_position = buffer_index;
     cursor_x = (cursor_position % CONSOLE_COLS) * FONT_WIDTH;
     cursor_y = (cursor_position / CONSOLE_COLS) * FONT_HEIGHT;
@@ -335,10 +316,16 @@ consputc(int c)
       ;
   }
 
-  if(c == BACKSPACE){
+if(c == '\t'){
+    for(int i = 0; i < 8; i++)
+        uartputc(' ');
+} else if(c == BACKSPACE){
     uartputc('\b'); uartputc(' '); uartputc('\b');
-  } else
+} else {
     uartputc(c);
+}
+
+
   cgaputc(c);
 }
 
@@ -378,6 +365,20 @@ consoleintr(int (*getc)(void))
           consputc(BACKSPACE);
       }
       break;
+case '\t':  // Tab
+    if(input.e-input.r < INPUT_BUF - 8){  // ensure space for 8 spaces
+        for(int i = 0; i < 8; i++){
+            input.buf[input.e++ % INPUT_BUF] = ' ';
+            if(ttyb.tflags & ECHO)
+                consputc(' ');
+        }
+        if(input.e == input.r+INPUT_BUF){
+            input.w = input.e;
+            wakeup(&input.r);
+        }
+    }
+    break;
+
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
         c = (c == '\r') ? '\n' : c;

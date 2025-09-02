@@ -539,12 +539,11 @@ term()
 	exit(0);
 }
 
-// TODO!: Change to %u
 stats()
 {
-	fprintf(stderr,"%d+%d records in\n", nifr, nipr);
-	fprintf(stderr,"%d+%d records out\n", nofr, nopr);
+	fprintf(stderr,"%u+%u records in\n", nifr, nipr);
+	fprintf(stderr,"%u+%u records out\n", nofr, nopr);
 	if(ntrunc)
-		fprintf(stderr,"%d truncated records\n", ntrunc);
+		fprintf(stderr,"%u truncated records\n", ntrunc);
 	return 0;
 }

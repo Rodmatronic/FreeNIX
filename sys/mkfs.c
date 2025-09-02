@@ -217,6 +217,7 @@ for (i = 2; i < argc; i++) {
 	"date",
 	"dd",
 	"debugger",
+	"du",
 	"echo",
 	"ed",
 	"find",
