@@ -6,6 +6,7 @@ cmp		sysv	----o
 cp		V6	----o
 cron		V6	----o
 date		pou	---o- // timezones!
+dd		V7	----o
 echo		sysv	----o
 find		rod	----o
 getty		V6	-o--- // Does bare minimum
@@ -26,6 +27,7 @@ pwd		V7	----o
 rm		V7	----o
 rmdir		V7	----o
 sh		xv6	--o-- // Works fine, but not the same language as 7th edition.
+su		V7	----o
 sleep		sysv	----o
 touch		V7	----o
 uname		sysv	----o
