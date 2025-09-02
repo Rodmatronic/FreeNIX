@@ -183,6 +183,7 @@ UPROGS=\
 	$C/_cp\
 	$C/_cron\
 	$C/_date\
+	$C/_dd\
 	$C/_debugger\
 	$C/_echo\
 	$C/_ed\

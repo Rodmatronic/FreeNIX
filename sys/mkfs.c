@@ -216,6 +216,7 @@ for (i = 2; i < argc; i++) {
 	"cmp",
 	"cp",
 	"date",
+	"dd",
 	"debugger",
 	"echo",
 	"ed",
