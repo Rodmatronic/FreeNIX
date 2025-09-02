@@ -27,7 +27,6 @@ du(char *path)
     return blocks;
   }
 
-
   fd = open(path, 0);
   if (fd < 0) {
     printf("du: cannot open %s\n", path);
@@ -59,7 +58,32 @@ int
 main(int argc, char *argv[])
 {
   if (argc < 2) {
-    du(".");
+    // Use /bin/pwd to get the current directory
+    int p[2];
+    pipe(p);
+
+    if (fork() == 0) {
+      close(p[0]);
+      dup(p[1]);
+      close(p[1]);
+      char *args[] = {"pwd", 0};
+      exec("/bin/pwd", args);
+      exit(0);
+    }
+
+    close(p[1]);
+    int n = read(p[0], buf, sizeof(buf)-1);
+    close(p[0]);
+    wait(0);
+
+    if (n > 0) {
+      buf[n] = 0;
+      // Remove trailing newline if present
+      if (buf[n-1] == '\n') buf[n-1] = 0;
+      du(buf);
+    } else {
+      du(".");
+    }
   } else {
     for (int i = 1; i < argc; i++)
       du(argv[i]);
