@@ -189,7 +189,7 @@ int parse_long_options(int argc, char **argv,
             return -1;
         } else if (strcmp(arg, "version") == 0) {
             printf("%s\n", version);
-            return -1;
+            exit(0);
         } else {
             /* Handle --option=value */
             char *eq = strchr(arg, '=');
