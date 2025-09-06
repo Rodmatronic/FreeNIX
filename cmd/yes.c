@@ -1,122 +1,49 @@
+/*	$OpenBSD: yes.c,v 1.9 2015/10/13 07:03:26 doug Exp $	*/
+/*	$NetBSD: yes.c,v 1.3 1994/11/14 04:56:15 jtc Exp $	*/
+
+/*
+ * Copyright (c) 1987, 1993
+ *	The Regents of the University of California.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
 #include "../include/stdio.h"
 #include "../include/errno.h"
 #include "../include/stdbool.h"
 
-/* yes - output a string repeatedly until killed
-   Copyright (C) 1991-2025 Free Software Foundation, Inc.
-
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
-
-/* David MacKenzie <djm@gnu.ai.mit.edu> */
-
-#define PROGRAM_NAME "yes"
-#define AUTHORS proper_name ("David MacKenzie")
-
-void
-usage (int status)
-{
-  if (status != EXIT_SUCCESS)
-    emit_try_help ();
-  else
-    {
-      printf (_("\
-Usage: %s [STRING]...\n\
-  or:  %s OPTION\n\
-"),
-              program_name, program_name);
-
-      fputs (_("\
-Repeatedly output a line with all specified STRING(s), or 'y'.\n\
-\n\
-"), stdout);
-      fputs (HELP_OPTION_DESCRIPTION, stdout);
-      fputs (VERSION_OPTION_DESCRIPTION, stdout);
-      emit_ancillary_info (PROGRAM_NAME);
-    }
-  exit (status);
-}
-
 int
-main (int argc, char **argv)
+main(int argc, char *argv[])
 {
-  initialize_main (&argc, &argv);
-  set_program_name (argv[0]);
-  setlocale (LC_ALL, "");
-//  bindtextdomain (PACKAGE, LOCALEDIR);
-//  textdomain (PACKAGE);
+	if (pledge("stdio", NULL) == -1)
+		err(1, "pledge");
 
-//  atexit (close_stdout);
-
-  parse_gnu_standard_options_only (argc, argv, PROGRAM_NAME, PACKAGE_NAME,
-                                   Version, true, usage, AUTHORS,
-                                   (char const *) nullptr);
-
-  char **operands = argv + optind;
-  char **operand_lim = argv + argc;
-  if (optind == argc)
-    *operand_lim++ = bad_cast ("y");
-
-  /* Buffer data locally once, rather than having the
-     large overhead of stdio buffering each item.  */
-  size_t bufalloc = 0;
-  bool reuse_operand_strings = true;
-  char **operandp = operands;
-  do
-    {
-      size_t operand_len = strlen (*operandp);
-      bufalloc += operand_len + 1;
-      if (operandp + 1 < operand_lim
-          && *operandp + operand_len + 1 != operandp[1])
-        reuse_operand_strings = false;
-    }
-  while (++operandp < operand_lim);
-
-  /* Improve performance by using a buffer size greater than BUFSIZ / 2.  */
-  if (bufalloc <= BUFSIZ / 2)
-    {
-      bufalloc = BUFSIZ;
-      reuse_operand_strings = false;
-    }
-
-  /* Fill the buffer with one copy of the output.  If possible, reuse
-     the operands strings; this wins when the buffer would be large.  */
-  char *buf = reuse_operand_strings ? *operands : xmalloc (bufalloc);
-  size_t bufused = 0;
-  operandp = operands;
-  do
-    {
-      size_t operand_len = strlen (*operandp);
-      if (! reuse_operand_strings)
-        memcpy (buf + bufused, *operandp, operand_len);
-      bufused += operand_len;
-      buf[bufused++] = ' ';
-    }
-  while (++operandp < operand_lim);
-  buf[bufused - 1] = '\n';
-
-  /* If a larger buffer was allocated, fill it by repeating the buffer
-     contents.  */
-  size_t copysize = bufused;
-  for (size_t copies = bufalloc / copysize; --copies; )
-    {
-      memcpy (buf + bufused, buf, copysize);
-      bufused += copysize;
-    }
-
-  /* Repeatedly output the buffer until there is a write error; then fail.  */
-  while (full_write (STDOUT_FILENO, buf, bufused) == bufused)
-    continue;
-  error (0, errno, _("standard output"));
-  main_exit (EXIT_FAILURE);
+	if (argc > 1)
+		for (;;)
+			puts(argv[1]);
+	else
+		for (;;)
+			puts("y");
 }
