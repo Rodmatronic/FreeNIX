@@ -10,6 +10,9 @@ struct rtcdate;
 #include "../include/stdarg.h"
 #include "../include/fs.h"
 
+#define	CTL_HW		6		/* generic CPU/io */
+#define	HW_MACHINE_ARCH	10		/* string: machine architecture */
+
 #define no_argument 0
 #define required_argument 1
 #define optional_argument 2

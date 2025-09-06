@@ -32,7 +32,7 @@ sh		xv6	--o-- // Works fine, but not the same language as 7th edition.
 su		V7	----o
 sleep		gnu	----o
 touch		sysvr4	----o
-uname		gnu	----o
+uname		openbsd	----o
 wc		V7	----o
 whoami		gnu	----o
 yes		openbsd	----o
