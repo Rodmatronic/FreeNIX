@@ -38,9 +38,6 @@ static void usage ();
 #define MODE_INVALID 0
 #define MODE_MEMORY_EXHAUSTED 1
 
-/* The name this program was run with. */
-char *program_name;
-
 /* If non-zero, display usage information and exit.  */
 static int show_help;
 
@@ -141,8 +138,8 @@ main (argc, argv)
 #else
       if (argc - optind != 2)
 	usage (1);
-      if (mkfifo (argv[optind], newmode))
-	error (1, errno, "%s", argv[optind]);
+//      if (mkfifo (argv[optind], newmode))
+//	error (1, errno, "%s", argv[optind]);
 #endif
       break;
 

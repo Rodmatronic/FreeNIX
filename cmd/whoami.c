@@ -25,9 +25,6 @@
 /* Equivalent to `id -un'. */
 /* Written by Richard Mlynarik. */
 
-/* The name this program was run with. */
-char *program_name;
-
 /* If non-zero, display usage information and exit.  */
 static int show_help;
 

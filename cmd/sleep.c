@@ -20,9 +20,6 @@
 
 static long argdecode ();
 
-/* The name by which this program was run. */
-char *program_name;
-
 /* If non-zero, display usage information and exit.  */
 static int show_help;
 

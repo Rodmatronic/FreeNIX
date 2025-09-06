@@ -1,3 +1,9 @@
+/*
+ *
+ * Most of this file has been deticated to macros for modern GNU Coreutils. Thanks, GNU.
+ *
+ */
+
 #include "../include/types.h"
 #include "../include/stat.h"
 #include "../include/fcntl.h"
@@ -15,6 +21,187 @@ static FILE *pwf = NULL;
 static char line[BUFSIZ+1];
 static struct passwd passwd;
 #define ECHO 010
+
+int
+parse_gnu_standard_options_only (int argc, char **argv,
+                                 const char *progname,
+                                 const char *package,
+                                 const char *version,
+                                 int scan_all,     /* usually true */
+                                 void (*usage)(void),
+                                 const char * const *authors,
+                                 const char *report_address)
+{
+    (void) package;
+    (void) authors;
+    (void) report_address;
+    (void) scan_all;
+
+    return parse_long_options(argc, argv, progname, version, usage);
+}
+
+size_t full_write(int fd, const void *buf, size_t count) {
+    size_t total = 0;
+    const char *p = buf;
+
+    while (total < count) {
+        size_t written = write(fd, p + total, count - total);
+        if (written <= 0)
+            return -1;  // error or EOF
+        total += written;
+    }
+    return total;
+}
+
+void initialize_main(int argc, char* argv[]) { // NOP
+}
+
+void set_program_name(char* name) {
+	program_name = name;
+}
+void* xmalloc(uint mem) {
+	return malloc(mem);
+}
+char* fputs(char* str, int fileno) {
+	return puts(str, fileno);
+}
+
+#define MAX_EXIT_FUNCS 32
+static void (*exit_funcs[MAX_EXIT_FUNCS])(void);
+static int exit_func_count = 0;
+
+void close_stdout(void) {
+    if (close(stdout) == EOF) {
+        error(0, errno, "error closing stdout");
+        exit(EXIT_FAILURE);
+    }
+}
+
+int my_atexit(void (*func)(void)) {
+    if (exit_func_count >= MAX_EXIT_FUNCS) return -1;
+    exit_funcs[exit_func_count++] = func;
+    return 0;
+}
+
+char * program_name;
+
+char * bindtextdomain (const char * domainname, const char * dirname){
+	return NULL;
+}
+
+char const *setlocale(int category, const char *locale) {
+	return (char *)"EN_US";
+}
+
+void main_exit(int sig) {
+	exit(sig);
+}
+
+DIR* opendir(const char *path) {
+    int fd = open(path, 0);
+    if (fd < 0) return 0;
+
+    struct stat st;
+    if (fstat(fd, &st) < 0 || st.mode != S_IFDIR) {
+        close(fd);
+        return 0;
+    }
+
+    DIR *dir = malloc(sizeof(DIR));
+    if (!dir) {
+        close(fd);
+        return 0;
+    }
+
+    dir->fd = fd;
+    return dir;
+}
+
+void mode_string(int mode, char *buf) {
+    // File type
+    buf[0] = S_ISDIR(mode) ? 'd' :
+             S_ISCHR(mode) ? 'c' :
+             S_ISBLK(mode) ? 'b' :
+             S_ISFIFO(mode) ? 'p' :
+             S_ISLNK(mode) ? 'l' :
+             S_ISSOCK(mode) ? 's' : '-';
+
+    // Owner permissions
+    buf[1] = (mode & 0400) ? 'r' : '-';
+    buf[2] = (mode & 0200) ? 'w' : '-';
+    buf[3] = (mode & 0100) ? ((mode & 04000) ? 's' : 'x') : ((mode & 04000) ? 'S' : '-');
+
+    // Group permissions
+    buf[4] = (mode & 0040) ? 'r' : '-';
+    buf[5] = (mode & 0020) ? 'w' : '-';
+    buf[6] = (mode & 0010) ? ((mode & 02000) ? 's' : 'x') : ((mode & 02000) ? 'S' : '-');
+
+    // Other permissions
+    buf[7] = (mode & 0004) ? 'r' : '-';
+    buf[8] = (mode & 0002) ? 'w' : '-';
+    buf[9] = (mode & 0001) ? ((mode & 01000) ? 't' : 'x') : ((mode & 01000) ? 'T' : '-');
+
+    buf[10] = '\0';  // Null-terminate
+}
+
+uint convert_blocks(uint nblocks, int kilobyte_blocks) {
+    uint bytes = nblocks * 512;
+    if (kilobyte_blocks) {
+        return (bytes + 1023) / 1024;
+    } else {
+        return nblocks;
+    }
+}
+
+void abort() {
+	exit(0);
+}
+
+void* realloc(void* ptr, uint new_size) {
+    if (ptr == 0) {
+        return malloc(new_size);
+    }
+    if (new_size == 0) {
+        free(ptr);
+        return 0;
+    }
+    void* new_ptr = malloc(new_size);
+    if (new_ptr == 0) {
+        return 0;
+    }
+    memmove(new_ptr, ptr, new_size);
+    free(ptr);
+    return new_ptr;
+}
+
+
+void *memcpy(void* a, const void* b, int c){
+    return memmove(a, b, c);
+}
+
+void qsort(void *base, size_t nmemb, size_t size,
+                  int (*compar)(const void *, const void *))
+{
+    char *array = base;
+    for (size_t i = 1; i < nmemb; i++) {
+        char *key = malloc(size);
+        if (!key) return; // allocation failure, do nothing
+        memcpy(key, array + i * size, size);
+
+        size_t j = i;
+        while (j > 0 && compar(array + (j - 1) * size, key) > 0) {
+            memcpy(array + j * size, array + (j - 1) * size, size);
+            j--;
+        }
+        memcpy(array + j * size, key, size);
+        free(key);
+    }
+}
+
+
+int isatty() {
+    return 0;
+}
 
 int geteuid(int uid) {
     return getuid();
@@ -228,6 +415,22 @@ int getopt_long(int argc, char **argv, const char *opts, const struct option *lo
         optarg = NULL;
     }
     return c;
+}
+
+int argmatch(const char *arg, const char *const *valid_args) {
+    for (int i = 0; valid_args[i]; i++) {
+        if (strcmp(arg, valid_args[i]) == 0)
+            return i;
+    }
+    return -1;  // Not found
+}
+
+void invalid_arg(const char *type, const char *arg, int index) {
+    if (index >= 0)
+        return;
+
+    fprintf(stderr, "Invalid %s: '%s'\n", type, arg);
+    exit(1);
 }
 
 void error(int status, int errnum, const char *fmt, ...)

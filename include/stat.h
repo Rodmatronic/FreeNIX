@@ -25,6 +25,20 @@
 #define	S_IEXEC	00100		/* execute/search permission, owner */
 
 #define S_ISREG(mode)	((mode&0xF000) == 0x8000) 
+#define S_ISDIR(m)  (((m) & S_IFMT) == S_IFDIR)
+#define S_ISCHR(m)  (((m) & S_IFMT) == S_IFCHR)
+#define S_ISBLK(m)  (((m) & S_IFMT) == S_IFBLK)
+
+#define C_ISFIFO	0010000
+#define C_ISLNK		0120000
+#define C_ISSOCK	0140000
+
+#define S_ISFIFO(mode)	((mode&0xF000) == 0x1000)
+#define S_IFLNK  0120000  // Symbolic link
+#define S_IFSOCK 0140000  // Socket
+
+#define S_ISLNK(m)   (((m) & S_IFMT) == S_IFLNK)
+#define S_ISSOCK(m)  (((m) & S_IFMT) == S_IFSOCK)
 
 struct stat {
   uint mode;     // File type and permissions

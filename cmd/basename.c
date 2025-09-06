@@ -34,9 +34,6 @@ char *basename ();
 void strip_trailing_slashes ();
 static void remove_suffix ();
 
-/* The name this program was run with. */
-char *program_name;
-
 static void
 usage (status)
      int status;

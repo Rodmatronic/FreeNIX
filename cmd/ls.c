@@ -8,9 +8,6 @@
 char	*pwdf, *dirf;
 char	stdbuf[BUFSIZ];
 
-#define major(dev) ((dev) >> 8)
-#define minor(dev) ((dev) & 0xFF)
-
 struct lbuf {
 	union {
 		char	lname[15];
@@ -45,7 +42,7 @@ long	nblock();
 
 #define	ISARG	0100000
 
-// Swap helper for qsort
+/*// Swap helper for qsort
 static void swap(char *a, char *b, int size) {
     char tmp;
     for (int i = 0; i < size; i++) {
@@ -80,7 +77,7 @@ void qsort(void *base, int nmemb, int size, int (*compar)(const void *, const vo
 
     qsort(p, i, size, compar);
     qsort(p + (i + 1) * size, nmemb - i - 1, size, compar);
-}
+}*/
 
 char *pwdfname = NULL;
 
@@ -92,7 +89,6 @@ void rewind_pwdf() {
         exit(1);
     }
 }
-
 
 main(argc, argv)
 char *argv[];
@@ -374,10 +370,8 @@ char *dir;
     }
     tblocks = 0;
     for(;;) {
-        // Corrected read call: fd first, check for 16-byte entry
         if (read(dirf, (char *)&dentry, sizeof(dentry)) != sizeof(dentry))
             break;
-        // Skip unallocated entries and "."/".." unless -a flag is set
         if (dentry.inum == 0
          || (aflg == 0 && dentry.name[0]=='.' &&
              (dentry.name[1]=='\0' ||
@@ -386,7 +380,6 @@ char *dir;
         ep = gstat(makename(dir, dentry.name), 0);
         if (ep==NULL)
             continue;
-        // Copy the directory entry name
         for (j=0; j<DIRSIZ; j++)
             ep->ln.lname[j] = dentry.name[j];
     }

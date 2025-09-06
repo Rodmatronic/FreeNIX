@@ -26,9 +26,6 @@
 char	*rindex();
 void strip_trailing_slashes ();
 
-/* The name this program was run with. */
-char *program_name;
-
 static void
 usage (status)
      int status;

@@ -8,12 +8,42 @@ struct rtcdate;
 #include "../include/utsname.h"
 #include "../include/tty.h"
 #include "../include/stdarg.h"
+#include "../include/fs.h"
 
 #define no_argument 0
 #define required_argument 1
 #define optional_argument 2
 
+#define major(dev) ((int)(((unsigned int)(dev) >> 8) & 0xFF))
+#define minor(dev) ((int)((dev) & 0xFF))
+#define ST_NBLOCKS(stat) (((stat).size + 511) / 512)
+#define alloca(size) malloc(size)
+#define SAFE_LSTAT(path, statbuf) stat((path), (statbuf))
+#define SAFE_STAT(path, statbuf) stat((path), (statbuf))
+#define PATH_MAX		 255
+
+#define EXIT_FAILURE 1
+#define EXIT_SUCCESS 0
+
+#define HELP_OPTION_DESCRIPTION \
+  _("      --help        display this help and exit\n")
+#define VERSION_OPTION_DESCRIPTION \
+  _("      --version     output version information and exit\n")
+
+#define LC_ALL "C"
+#define PACKAGE_NAME "(GNU Coreutils)"
+extern char * program_name;
+
+#define nullptr ((void*)0)
+
+#define STDOUT_FILENO 1
+
 extern char* optarg;
+
+typedef struct {
+    int fd;
+    struct dirent de;
+} DIR;
 
 struct option {
     const char *name;
@@ -29,13 +59,26 @@ struct option {
 
 #define EOF (-1)
 #define NULL ((void*)0)
-#define version_string "GNU COREUTILS for Exnix."
+#define version_string "(GNU coreutils) 9.1\nCopyright (C) 2022 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law."
+#define Version "(GNU coreutils) 9.1\nCopyright (C) 2022 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law."
 //#define	no_argument		0
 
+#define _(String) (String)
+#define proper_name(String) (String)
+#define emit_try_help() \
+  do \
+    { \
+      fprintf (stderr, _("Try '%s --help' for more information.\n"), \
+               program_name); \
+    } \
+  while (0)
+
+static inline void
+emit_ancillary_info (char const *program) {}
+
+#define bad_cast(String) ((char *) (String))
 #define BUFSIZ 256
-
 extern char *month[];
-
 extern int days_in_month[];
 extern int days_in_month_leap[];
 

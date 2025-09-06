@@ -36,9 +36,6 @@ static void cat ();
 static void next_line_num ();
 static void simple_cat ();
 
-/* Name under which this program was invoked.  */
-char *program_name;
-
 /* Name of input file.  May be "-".  */
 static char *infile;
 

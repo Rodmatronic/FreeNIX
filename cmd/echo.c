@@ -57,9 +57,6 @@ on System V systems with the -E option.
 #  define VALID_ECHO_OPTIONS "n"
 #endif /* !V9_ECHO */
 
-/* The name this program was run with. */
-char *program_name;
-
 static void
 usage (status)
      int status;

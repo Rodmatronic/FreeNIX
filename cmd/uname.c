@@ -55,9 +55,6 @@ static void usage ();
 /* Mask indicating which elements of the name to print. */
 static unsigned char toprint;
 
-/* The name this program was run with, for error messages. */
-char *program_name;
-
 /* If non-zero, display usage information and exit.  */
 static int show_help;
 

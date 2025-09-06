@@ -23,9 +23,6 @@
 
 /* Jim Meyering <meyering@comco.com> */
 
-/* The name this program was run with. */
-char *program_name;
-
 static void
 usage (status)
      int status;

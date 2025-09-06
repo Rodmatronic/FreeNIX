@@ -2,6 +2,9 @@
 # This file contains the last 5 GIT commits for Exnix.
 #
 Author: roddo
+Message: Replace 'changelog' with last 5 GIT commits
+
+Author: roddo
 Message: GNU WHOAMI utility
 
 Author: roddo
@@ -12,6 +15,3 @@ Message: GNU SLEEP utility
 
 Author: roddo
 Message: GNU UNAME utility (fix issue #22)
-
-Author: roddo
-Message: GNU MKNOD utility
