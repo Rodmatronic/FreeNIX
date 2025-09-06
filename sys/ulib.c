@@ -946,6 +946,10 @@ isdigit(int c)
 	return (unsigned)c - '0' < 10;
 }
 
+char* strlcpy(char *s, const char *t, size_t size) {
+	return strcpy(s, t);
+}
+
 char*
 strcpy(char *s, const char *t)
 {
