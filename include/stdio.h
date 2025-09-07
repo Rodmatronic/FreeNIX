@@ -194,4 +194,10 @@ void epoch_to_tm(unsigned long epoch, struct tm *tm);
 unsigned long mktime(struct tm * tm);
 int isleapyear(int);
 
+// setmode.c
+void *setmode(const char *);
+
+// reallocarray.c
+void * reallocarray(void *optr, size_t nmemb, size_t size);
+
 #endif

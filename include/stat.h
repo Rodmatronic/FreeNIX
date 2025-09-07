@@ -16,6 +16,10 @@
 #define S_IROTH 0004  // Other read
 #define S_IWOTH 0002  // Other write
 #define S_IXOTH 0001  // Other execute
+#define	S_IRWXU	0000700
+#define	S_IRWXG	000007
+#define	S_IRWXO	0000007
+#define	S_ISTXT	0001000	
 
 #define	S_ISUID	04000		/* set user id on execution */
 #define	S_ISGID	02000		/* set group id on execution */
@@ -24,7 +28,7 @@
 #define	S_IWRITE	00200		/* write permission, owner */
 #define	S_IEXEC	00100		/* execute/search permission, owner */
 
-#define S_ISREG(mode)	((mode&0xF000) == 0x8000) 
+#define S_ISREG(mode)	((mode&0xF000) == 0x8000)
 #define S_ISDIR(m)  (((m) & S_IFMT) == S_IFDIR)
 #define S_ISCHR(m)  (((m) & S_IFMT) == S_IFCHR)
 #define S_ISBLK(m)  (((m) & S_IFMT) == S_IFBLK)
@@ -39,6 +43,9 @@
 
 #define S_ISLNK(m)   (((m) & S_IFMT) == S_IFLNK)
 #define S_ISSOCK(m)  (((m) & S_IFMT) == S_IFSOCK)
+
+#define	DEFFILEMODE	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
+#define	ACCESSPERMS	(S_IRWXU|S_IRWXG|S_IRWXO)
 
 struct stat {
   uint mode;     // File type and permissions

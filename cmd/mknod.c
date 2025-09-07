@@ -1,176 +1,219 @@
+/*	$OpenBSD: mknod.c,v 1.31 2019/06/28 13:32:44 deraadt Exp $	*/
+/*	$NetBSD: mknod.c,v 1.8 1995/08/11 00:08:18 jtc Exp $	*/
+
+/*
+ * Copyright (c) 1997-2016 Theo de Raadt <deraadt@openbsd.org>,
+ *	Marc Espie <espie@openbsd.org>,	Todd Miller <millert@openbsd.org>,
+ *	Martin Natano <natano@openbsd.org>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
 #include "../include/types.h"
 #include "../include/stat.h"
 #include "../include/stdio.h"
 #include "../include/errno.h"
 #include "../include/fcntl.h"
+#include "../include/limits.h"
 
-/* mknod -- make special files
-   Copyright (C) 1990, 1991 Free Software Foundation, Inc.
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
-
-/* Usage: mknod [-m mode] [--mode=mode] path {bcu} major minor
-		make a block or character device node
-          mknod [-m mode] [--mode=mode] path p
-		make a FIFO (named pipe)
-
-   Options:
-   -m, --mode=mode	Set the mode of created nodes to MODE, which is
-			symbolic as in chmod and uses the umask as a point of
-			departure.
-
-   David MacKenzie <djm@ai.mit.edu>  */
-
-static void usage ();
-
-#define MODE_INVALID 0
-#define MODE_MEMORY_EXHAUSTED 1
-
-/* If non-zero, display usage information and exit.  */
-static int show_help;
-
-/* If non-zero, print the version on standard output and exit.  */
-static int show_version;
-
-static struct option const longopts[] =
-{
-  {"mode", required_argument, NULL, 'm'},
-  {"help", no_argument, &show_help, 1},
-  {"version", no_argument, &show_version, 1},
-  {NULL, 0, NULL, 0}
+struct node {
+	const char *name;
+	mode_t mode;
+	dev_t dev;
+	char mflag;
 };
 
-void
-main (argc, argv)
-     int argc;
-     char **argv;
+static int domakenodes(struct node *, int);
+static dev_t compute_device(int, char **);
+static void usage(int);
+
+int
+main(int argc, char *argv[])
 {
-  unsigned short newmode;
-  struct mode_change *change;
-  char *symbolic_mode;
-  int optc;
+	struct node *node;
+	int ismkfifo;
+	int n = 0;
+	int mode = DEFFILEMODE;
+	int mflag = 0;
+	void *set;
+	int ch;
 
-  program_name = argv[0];
-  symbolic_mode = NULL;
+	setprogname(argv[0]);
 
-  while ((optc = getopt_long (argc, argv, "m:", longopts, (int *) 0)) != EOF)
-    {
-      switch (optc)
-	{
-	case 0:
-	  break;
-	case 'm':
-	  symbolic_mode = optarg;
-	  break;
-	default:
-	  usage (1);
+	if (pledge("stdio dpath", NULL) == -1)
+		err(1, "pledge");
+
+	node = reallocarray(NULL, sizeof(struct node), argc);
+	if (!node)
+		err(1, NULL);
+
+	ismkfifo = strcmp(program_name, "mkfifo") == 0;
+
+	/* we parse all arguments upfront */
+	while (argc > 1) {
+		while ((ch = getopt(argc, argv, "m:")) != -1) {
+			switch (ch) {
+			case 'm':
+				if (!(set = setmode(optarg)))
+					err(1, "invalid file mode '%s'",
+					    optarg);
+				/*
+				 * In symbolic mode strings, the + and -
+				 * operators are interpreted relative to
+				 * an assumed initial mode of a=rw.
+				 */
+				mode = getmode(set, DEFFILEMODE);
+				if ((mode & ACCESSPERMS) != mode)
+					err(1, "forbidden mode: %o", mode);
+				mflag = 1;
+				free(set);
+				break;
+			default:
+				usage(ismkfifo);
+			}
+		}
+		argc -= optind;
+		argv += optind;
+
+		if (ismkfifo) {
+			while (*argv) {
+				node[n].mode = mode | S_IFIFO;
+				node[n].mflag = mflag;
+				node[n].name = *argv;
+				node[n].dev = 0;
+				n++;
+				argv++;
+			}
+			/* XXX no multiple getopt */
+			break;
+		} else {
+			if (argc < 2)
+				usage(ismkfifo);
+			node[n].mode = mode;
+			node[n].mflag = mflag;
+			node[n].name = argv[0];
+			if (strlen(argv[1]) != 1)
+				err(1, "invalid device type '%s'", argv[1]);
+
+			/* XXX computation offset by one for next getopt */
+			switch(argv[1][0]) {
+			case 'p':
+				node[n].mode |= S_IFIFO;
+				node[n].dev = 0;
+				argv++;
+				argc--;
+				break;
+			case 'b':
+				node[n].mode |= S_IFBLK;
+				goto common;
+			case 'c':
+				node[n].mode |= S_IFCHR;
+common:
+				node[n].dev = compute_device(argc, argv);
+				argv+=3;
+				argc-=3;
+				break;
+			default:
+				err(1, "invalid device type '%s'", argv[1]);
+			}
+			n++;
+		}
+		optind = 1;
 	}
-    }
 
-  if (show_version)
-    {
-      printf ("%s\n", version_string);
-      exit (0);
-    }
+	if (n == 0)
+		usage(ismkfifo);
 
-  if (show_help)
-    usage (0);
+	return (domakenodes(node, n));
+}
 
-  newmode = 0666;
-  if (symbolic_mode)
-    {
-//      change = mode_compile (symbolic_mode, 0);
-      if (change == MODE_INVALID)
-	error (1, 0, "invalid mode");
-      else if (change == MODE_MEMORY_EXHAUSTED)
-	error (1, 0, "virtual memory exhausted");
-//      newmode = mode_adjust (newmode, change);
-    }
+static dev_t
+compute_device(int argc, char **argv)
+{
+	dev_t dev;
+	char *endp;
+	unsigned long major, minor;
 
-  if (argc - optind != 2 && argc - optind != 4)
-    usage (1);
+	if (argc < 4)
+		usage(0);
 
-  /* Only check the first character, to allow mnemonic usage like
-     `mknod /dev/rst0 character 18 0'. */
+	errno = 0;
+	major = strtoul(argv[2], &endp, 0);
+	if (endp == argv[2] || *endp != '\0')
+		err(1, "invalid major number '%s'", argv[2]);
+	if (errno == ERANGE && major == ULONG_MAX)
+		err(1, "major number too large: '%s'", argv[2]);
 
-  switch (argv[optind + 1][0])
-    {
-    case 'b':			/* `block' or `buffered' */
-#ifndef S_IFBLK
-      error (4, 0, "block special files not supported");
-#else
-      if (argc - optind != 4)
-	usage (1);
-      if (mknod (argv[optind], newmode | S_IFBLK,
-		 makedev (atoi (argv[optind + 2]), atoi (argv[optind + 3]))))
-	error (1, errno, "%s", argv[optind]);
-#endif
-      break;
+	errno = 0;
+	minor = strtoul(argv[3], &endp, 0);
+	if (endp == argv[3] || *endp != '\0')
+		err(1, "invalid minor number '%s'", argv[3]);
+	if (errno == ERANGE && minor == ULONG_MAX)
+		err(1, "minor number too large: '%s'", argv[3]);
 
-    case 'c':			/* `character' */
-    case 'u':			/* `unbuffered' */
-#ifndef S_IFCHR
-      error (4, 0, "character special files not supported");
-#else
-      if (argc - optind != 4)
-	usage (1);
-      if (mknod (argv[optind], newmode | S_IFCHR,
-		 makedev (atoi (argv[optind + 2]), atoi (argv[optind + 3]))))
-	error (1, errno, "%s", argv[optind]);
-#endif
-      break;
+	dev = makedev(major, minor);
+	if (major(dev) != major || minor(dev) != minor)
+		err(1, "major or minor number too large (%lu %lu)", major,
+		    minor);
 
-    case 'p':			/* `pipe' */
-#ifndef S_ISFIFO
-      error (4, 0, "fifo files not supported");
-#else
-      if (argc - optind != 2)
-	usage (1);
-//      if (mkfifo (argv[optind], newmode))
-//	error (1, errno, "%s", argv[optind]);
-#endif
-      break;
+	return dev;
+}
 
-    default:
-      usage (1);
-    }
+static int
+domakenodes(struct node *node, int n)
+{
+	int done_umask = 0;
+	int rv = 0;
+	int i;
 
-  exit (0);
+	for (i = 0; i != n; i++) {
+		int r;
+		/*
+		 * If the user specified a mode via `-m', don't allow the umask
+		 * to modify it.  If no `-m' flag was specified, the default
+		 * mode is the value of the bitwise inclusive or of S_IRUSR,
+		 * S_IWUSR, S_IRGRP, S_IWGRP, S_IROTH, and S_IWOTH as
+		 * modified by the umask.
+		 */
+		if (node[i].mflag && !done_umask) {
+//			(void)umask(0);
+			done_umask = 1;
+		}
+
+		r = mknod(node[i].name, node[i].mode, node[i].dev);
+		if (r == -1) {
+			warn("%s", node[i].name);
+			rv = 1;
+		}
+	}
+
+	free(node);
+	return rv;
 }
 
 static void
-usage (status)
-     int status;
+usage(int ismkfifo)
 {
-  if (status != 0)
-    fprintf (stderr, "Try `%s --help' for more information.\n",
-	     program_name);
-  else
-    {
-      printf ("Usage: %s [OPTION]... PATH TYPE [MAJOR MINOR]\n", program_name);
-      printf ("\
-\n\
-  -m, --mode=MODE   set permission mode (as in chmod), not 0666 - umask\n\
-      --help        display this help and exit\n\
-      --version     output version information and exit\n\
-\n\
-MAJOR MINOR are forbidden for TYPE p, mandatory otherwise.  TYPE may be:\n\
-\n\
-  b      create a block (buffered) special file\n\
-  c, u   create a character (unbuffered) special file   \n\
-  p      create a FIFO\n");
-    }
-  exit (status);
+
+	if (ismkfifo == 1)
+		(void)fprintf(stderr, "usage: %s [-m mode] fifo_name ...\n",
+		    program_name);
+	else {
+		(void)fprintf(stderr,
+		    "usage: %s [-m mode] name b|c major minor\n",
+		    program_name);
+		(void)fprintf(stderr, "       %s [-m mode] name p\n",
+		    program_name);
+	}
+	exit(1);
 }

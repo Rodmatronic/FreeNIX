@@ -77,4 +77,13 @@
 #define	SIGRTMIN	33
 #define	SIGRTMAX	63
 
+typedef unsigned int sigset_t;
+int	sigprocmask(int, const sigset_t *__restrict, sigset_t *__restrict);
+
+
+#define	SIG_BLOCK	1
+#define	SIG_UNBLOCK	2
+#define	SIG_SETMASK	3
+
 #endif	/* !_SYS_SIGNAL_H_ */
+
