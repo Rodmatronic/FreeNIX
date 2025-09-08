@@ -83,7 +83,7 @@ runcmd(struct cmd *cmd)
           has_slash = 1;
 
       if(!has_slash) {
-        const char *path_list[] = {"/bin", "/usr/bin"};
+        const char *path_list[] = {"/bin", "/usr/bin", "/sbin"};
         char new_path[128];
         int i;
         for(i = 0; i < sizeof(path_list)/sizeof(path_list[0]); i++) {

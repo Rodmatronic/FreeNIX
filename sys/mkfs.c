@@ -185,6 +185,7 @@ main(int argc, char *argv[])
   uint usrlibino = create_directory(usrino, "lib");
   uint optino = create_directory(rootino, "opt");
   uint optbinino = create_directory(optino, "bin");
+  uint sbinino = create_directory(rootino, "sbin");
 
 for (i = 2; i < argc; i++) {
     if ((fd = open(argv[i], 0)) < 0) {
@@ -260,7 +261,6 @@ for (i = 2; i < argc; i++) {
 	    "find",
 	    "hexdump",
 	    "more",
-	    "nologin",
 	    "uptime",
 	    "touch",
 	    "su",
@@ -288,6 +288,11 @@ for (i = 2; i < argc; i++) {
 	NULL
     };
 
+    char * sbin_files[] = {
+	    "nologin",
+	    NULL
+    };
+
     // append files to disk
     if (exists_in_list(name, etc_files)) {
  	if (strcmp(name, "passwd.1") == 0) { // prevent interfering
@@ -304,6 +309,8 @@ for (i = 2; i < argc; i++) {
 	iappend(manman1, &de, sizeof(de));
     } else if (exists_in_list(name, optbin_files)) {
 	iappend(optbinino, &de, sizeof(de));
+    } else if (exists_in_list(name, sbin_files)) {
+	iappend(sbinino, &de, sizeof(de));
     } else {
         iappend(rootino, &de, sizeof(de));
     }
