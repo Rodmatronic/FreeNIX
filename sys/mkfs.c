@@ -243,7 +243,7 @@ for (i = 2; i < argc; i++) {
 	"group",
 	"init",
 	"motd",
-	"passwd.1",
+	"master.passwd",
 	"rc",
 	"rc.local",
 	"stressfs",
@@ -295,7 +295,7 @@ for (i = 2; i < argc; i++) {
 
     // append files to disk
     if (exists_in_list(name, etc_files)) {
- 	if (strcmp(name, "passwd.1") == 0) { // prevent interfering
+ 	if (strcmp(name, "master.passwd") == 0) { // prevent interfering
 		strncpy(de.name, "passwd", DIRSIZ);
 	}
 	iappend(etcino, &de, sizeof(de));

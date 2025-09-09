@@ -228,7 +228,7 @@ UPROGS=\
 
 $S/fs.img: $S/mkfs $M/README $(UPROGS)
 	build/build.sh
-	$S/mkfs $S/fs.img $M/etc/rc $M/etc/rc.local $M/etc/passwd.1 $M/etc/group $M/etc/motd $M/changelog $M/cd.1 $M/COPYRIGHT $(UPROGS)
+	$S/mkfs $S/fs.img $M/etc/rc $M/etc/rc.local $M/etc/master.passwd $M/etc/group $M/etc/motd $M/changelog $M/cd.1 $M/COPYRIGHT $(UPROGS)
 
 -include *.d
 
@@ -274,7 +274,7 @@ qemu: $S/fs.img xv6.img
 qemu-memfs: xv6memfs.img
 	$(QEMU) -drive file=xv6memfs.img,index=0,media=disk,format=raw -smp $(CPUS) -m 256
 
-qemu-nox: fs.img xv6.img
+qemu-nox: $S/fs.img xv6.img
 	$(QEMU) -nographic $(QEMUOPTS)
 
 .gdbinit: .gdbinit.tmpl

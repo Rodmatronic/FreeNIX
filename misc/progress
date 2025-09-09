@@ -1,8 +1,8 @@
 NAME		UNIX	FUNC?
-banner		sysv	----o
+banner		openbsd	----o
 basename	openbsd	----o
 cat		openbsd	----o
-cmp		sysv	----o
+cmp		sysv	----o // TODO: Remove for Copyright.
 cp		V6	----o
 cron		V6	----o
 date		pou	---o- // timezones!
@@ -32,7 +32,7 @@ rmdir		V7	----o
 sh		xv6	--o-- // Works fine, but not the same language as 7th edition.
 su		V7	----o
 sleep		gnu	----o
-touch		sysvr4	----o
+touch		sysvr4	----o // TODO: Remove for copyright.
 uname		openbsd	----o
 wc		openbsd	----o
 whoami		gnu	----o
