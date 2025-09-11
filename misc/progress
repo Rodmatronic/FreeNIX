@@ -1,42 +1,42 @@
 NAME		UNIX	FUNC?
-banner		openbsd	----o
-basename	openbsd	----o
-cat		openbsd	----o
+banner		openbsd	----o // DONE
+basename	openbsd	----o // DONE
+cat		openbsd	----o // DONE
 cmp		sysv	----o // TODO: Remove for Copyright.
-cp		V6	----o
-cron		V6	----o
+cp		V6	----o // REPLACE
+cron		V6	----o // REPLACE
 date		pou	---o- // timezones!
-dd		V7	----o
-dirname		openbsd	----o
+dd		V7	----o // DONE(?)
+dirname		openbsd	----o // DONE
 du		rod	---o- // '.' doesnt work
-echo		openbsd	----o
-find		rod	----o
+echo		openbsd	----o // DONE
+find		rod	----o // DONE(?)
 getty		V6	-o--- // Does bare minimum
-grep		V7	----o
+grep		V7	----o // REPLACE
 hexdump		rod	---o- // Lacking options
-init		rod	--o-- // SYSV styled.
-kill		openbsd	----o
-ln		V7	----o
-login		V6	----o
+init		rod	--o-- // DONE
+kill		openbsd	----o // DONE
+ln		openbsd	----o // DONE
+login		V6	----o // REPLACE
 ls		V7	---o- // Unfinished -l
 man		rod	---o- // Missing support for bold, italic, etc
-mkdir		xv6	----o
-mknod		openbsd	----o
+mkdir		xv6	----o // REPLACE
+mknod		openbsd	----o // DONE
 more		rod	---o- // Works fine, just needs options.
-mv		V7	----o
-nologin		openbsd ----o
-passwd		V7	----o
-pwd		openbsd	----o
-rm		V7	----o
-rmdir		V7	----o
+mv		V7	----o // REPLACE
+nologin		openbsd ----o // DONE
+passwd		V7	----o // DONE(?)
+pwd		openbsd	----o // DONE
+rm		V7	----o // DONE(?)
+rmdir		V7	----o // DONE
 sh		xv6	--o-- // Works fine, but not the same language as 7th edition.
-su		V7	----o
-sleep		gnu	----o
+su		V7	----o // DONE
+sleep		gnu	----o // DONE
 touch		sysvr4	----o // TODO: Remove for copyright.
-uname		openbsd	----o
-wc		openbsd	----o
-whoami		gnu	----o
-yes		openbsd	----o
+uname		openbsd	----o // DONE
+wc		openbsd	----o // DONE
+whoami		gnu	----o // DONE
+yes		openbsd	----o // DONE
 
 ISSUES
  o INIT is not up to a usable standard (check old unix source!)

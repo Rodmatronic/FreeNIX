@@ -2,3 +2,8 @@
 #define O_WRONLY  0x001
 #define O_RDWR    0x002
 #define O_CREATE  0x200
+#define	AT_FDCWD  -100
+#define	AT_EACCESS		0x01
+#define	AT_SYMLINK_NOFOLLOW	0x02
+#define	AT_SYMLINK_FOLLOW	0x04
+#define	AT_REMOVEDIR		0x08

@@ -24,6 +24,15 @@ static struct passwd passwd;
 
 void* realloc(void* ptr, uint new_size);
 
+int symlink(const char *target, const char *linkpath) {
+    errno = EOPNOTSUPP;
+    return EOPNOTSUPP;
+}
+
+int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags) {
+    return link(oldpath, newpath);
+}
+
 int getline(char **buf, size_t *bufsz, int fd) {
     if (*buf == 0 || *bufsz == 0) {
         *bufsz = 128;
