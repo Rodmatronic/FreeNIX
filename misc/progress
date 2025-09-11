@@ -20,7 +20,7 @@ ln		openbsd	----o // DONE
 login		V6	----o // REPLACE
 ls		V7	---o- // Unfinished -l
 man		rod	---o- // Missing support for bold, italic, etc
-mkdir		xv6	----o // REPLACE
+mkdir		opebsd	---o- // slightly buggy
 mknod		openbsd	----o // DONE
 more		rod	---o- // Works fine, just needs options.
 mv		V7	----o // REPLACE
