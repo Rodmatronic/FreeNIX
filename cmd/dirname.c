@@ -55,6 +55,6 @@ main(int argc, char *argv[])
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: %s pathname\n", program_name);
+	(void)fprintf(stderr, "usage: dirname pathname\n");
 	exit(1);
 }

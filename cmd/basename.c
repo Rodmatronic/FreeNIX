@@ -92,7 +92,6 @@ main(int argc, char *argv[])
 static void
 usage(void)
 {
-
-	(void)fprintf(stderr, "usage: %s string [suffix]\n", program_name);
+	(void)fprintf(stderr, "usage: basename string [suffix]\n");
 	exit(1);
 }

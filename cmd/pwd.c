@@ -115,6 +115,6 @@ getcwd_logical(void)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-LP]\n", program_name);
+	fprintf(stderr, "usage: pwd [-LP]\n");
 	exit(EXIT_FAILURE);
 }

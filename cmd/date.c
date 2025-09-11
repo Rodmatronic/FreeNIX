@@ -14,32 +14,17 @@ int day_of_year(int year, int month, int day) {
     return days;
 }
 
-#define PROGRAM_NAME "date"
-#define AUTHORS proper_name ("David MacKenzie")
-
 static struct option long_options[] = {
-    {"help",    no_argument,       0, 'h'},
-    {"version", no_argument,       0, 'v'},
     {0,         0,                 0,  0 }
 };
 
 void
-usage (int status)
+usage(void)
 {
-  if (status != EXIT_SUCCESS)
-    emit_try_help ();
-  else
-    {
-      printf ("Usage: %s [FORMAT]\n  or:  %s [MMDDhhmm[[CC]YY][.ss]]\n", program_name, program_name);
+      printf ("Usage: date [FORMAT]\n  or:  date [MMDDhhmm[[CC]YY][.ss]]\n");
       printf ("Display date and time in the given FORMAT.\nWith [MMDDhhmm[[CC]YY][.ss]], set the date and time.\n", stdout);
 
       printf ("\nExamples:\nSet the date to the 8th of October (in the current year)\n  # date 10080045\nOr, by specifying a year with/without a century:\n  # date 100800451980\n", stdout);
-    }
-  exit (status);
-}
-
-void version() {
-	fprintf(stderr, "%s - (Exnix Coreutil)\n", PROGRAM_NAME);
 }
 
 int main(int argc, char *argv[]) {
@@ -49,12 +34,6 @@ int main(int argc, char *argv[]) {
     set_program_name (argv[0]);
     while ((opt = getopt_long(argc, argv, "hv", long_options, &option_index)) != -1) {
         switch (opt) {
-            case 'h':
-                usage(0);
-                exit(0);
-            case 'v':
-                version();
-                exit(0);
             case '?':
                 exit(1);
         }
@@ -66,7 +45,7 @@ int main(int argc, char *argv[]) {
 
     if (optind < argc - 1) {
         fprintf(stderr, "date: too many arguments\n");
-        usage(1);
+        usage();
         exit(1);
     }
 

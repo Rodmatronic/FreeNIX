@@ -1,17 +1,17 @@
 # 
 # This file contains the last 5 GIT commits for Exnix.
 #
-Author: SuperPou
-Message: add missing files
-
-Author: SuperPou
-Message: WIP mknod
+Author: roddo
+Message: OPENBSD LN utility (fix issue #27)
 
 Author: roddo
-Message: add NETBSD copyright notice
+Message: /etc/init -> /sbin/init
 
 Author: roddo
-Message: Replace NETBSD utils with OPENBSD
+Message: Update RC & PROGRESS
 
 Author: roddo
-Message: OPENBSD KILL utility
+Message: SYSVR4-styled INIT (WIP)
+
+Author: roddo
+Message: SLEEP & WHOAMI fixups, /usr/home -> /home

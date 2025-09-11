@@ -206,14 +206,10 @@ usage(int ismkfifo)
 {
 
 	if (ismkfifo == 1)
-		(void)fprintf(stderr, "usage: %s [-m mode] fifo_name ...\n",
-		    program_name);
+		(void)fprintf(stderr, "usage: mknod [-m mode] fifo_name ...\n");
 	else {
-		(void)fprintf(stderr,
-		    "usage: %s [-m mode] name b|c major minor\n",
-		    program_name);
-		(void)fprintf(stderr, "       %s [-m mode] name p\n",
-		    program_name);
+		(void)fprintf(stderr, "usage: mknod [-m mode] name b|c major minor\n");
+		(void)fprintf(stderr, "       mknod [-m mode] name p\n");
 	}
 	exit(1);
 }
