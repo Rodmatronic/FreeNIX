@@ -7,6 +7,7 @@
 #include "../include/x86.h"
 #include "../include/config.h"
 #include "../include/time.h"
+#include "../include/version.h"
 
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
@@ -28,6 +29,7 @@ int
 main(void)
 {
   kinit1(end, P2V(4*1024*1024)); // phys page allocator
+  cprintf("FreeNIX %s\n", sys_version);
   kvmalloc();      // kernel page table
   timeinit();	   // set up unix date&time
   mpinit();        // detect other processors

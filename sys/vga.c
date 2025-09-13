@@ -201,7 +201,7 @@ vgainit(void)
 
     g_vga_buffer = (uint8_t*)VGA_ADDRESS;
     vga_clear_screen(bg_color);
-    cprintf("%s %s\n\t%s uses portions of OpenBSD & NetBSD source code.\n", sys_name, sys_version, sys_name);
+//    cprintf("%s %s\n\t%s uses portions of OpenBSD & NetBSD source code.\n", sys_name, sys_version, sys_name);
     cprintf("vgainit: %c%c Graphical vga on 0x%x\n", 0x01, 0x02, VGA_ADDRESS);
 }
 

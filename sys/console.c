@@ -152,8 +152,8 @@ cprintf(char *fmt, ...)
   if(locking)
     acquire(&cons.lock);
 
-  char * kernmsg = "[kern]: ";
-  for (int i = 0; i < 8; i++){
+  char * kernmsg = "[system]: ";
+  for (int i = 0; i < 10; i++){
 	  consputc(kernmsg[i]);
   }
 
@@ -333,6 +333,16 @@ cgaputc(int c)
     pos += 80 - pos%80;
   else if(c == BACKSPACE){
     if(pos > 0) --pos;
+  } else if(c == '\t') {
+    int spaces = 8 - (pos % 8);
+    for(int i = 0; i < spaces; i++) {
+      crt[pos++] = ' ' | current_colour;
+      if((pos/80) >= 25){
+        memmove(crt, crt+80, sizeof(crt[0])*24*80);
+        pos -= 80;
+        memset(crt+pos, 0, sizeof(crt[0])*(25*80 - pos));
+      }
+    }
   } else
     crt[pos++] = (c&0xff) | current_colour;  // black on white
 

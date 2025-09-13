@@ -9,11 +9,13 @@ echo 'clearing /tmp'
 rm -rf /tmp/
 mkdir /tmp
 
+echo 'updating motd'
+echo -n "Welcome to FreeNIX " > /etc/motd
+uname -v >> /etc/motd
+
 echo -n 'starting daemons:'
 echo -n ' cron';	cron
 echo '.'
 
 sh /etc/rc.local
 date; echo
-echo -n "Welcome to FreeNIX "
-uname -r
