@@ -253,7 +253,7 @@ void drawcursor(int x, int y, int visible) {
     }
 }
 
-static void cgaputc(int c) {
+static void vgaputc(int c) {
     int cursor_x = (cursor_position % CONSOLE_COLS) * FONT_WIDTH;
     int cursor_y = (cursor_position / CONSOLE_COLS) * FONT_HEIGHT;
     drawcursor(cursor_x, cursor_y, 0);
@@ -305,6 +305,173 @@ static void cgaputc(int c) {
     drawcursor(cursor_x, cursor_y, 1);
 }
 
+enum ansi_state {
+  ANSI_NORMAL,
+  ANSI_ESCAPE,
+  ANSI_BRACKET,
+  ANSI_PARAM
+};
+
+static enum ansi_state ansi_state = ANSI_NORMAL;
+static int ansi_params[4];
+static int ansi_param_count = 0;
+static int current_colour = 0x0700;
+static ushort *crt = (ushort*)P2V(0xb8000);  // CGA memory
+
+static void
+cgaputc(int c)
+{
+  int pos;
+
+  // Cursor position: col + 80*row.
+  outb(CRTPORT, 14);
+  pos = inb(CRTPORT+1) << 8;
+  outb(CRTPORT, 15);
+  pos |= inb(CRTPORT+1);
+
+  if(c == '\n')
+    pos += 80 - pos%80;
+  else if(c == BACKSPACE){
+    if(pos > 0) --pos;
+  } else
+    crt[pos++] = (c&0xff) | current_colour;  // black on white
+
+  if(pos < 0 || pos > 26*80)
+    panic("pos under/overflow");
+
+  if((pos/80) >= 25){  // Scroll up.
+    memmove(crt, crt+80, sizeof(crt[0])*24*80);
+    pos -= 80;
+    memset(crt+pos, 0, sizeof(crt[0])*(25*80 - pos));
+  }
+
+  outb(CRTPORT, 14);
+  outb(CRTPORT+1, pos>>8);
+  outb(CRTPORT, 15);
+  outb(CRTPORT+1, pos);
+  crt[pos] = ' ' | 0x0700;
+}
+
+void
+handle_ansi_sgr_sequence(int params[], int count)
+{
+  for(int i = 0; i < count; i++) {
+    handle_ansi_sgr(params[i]);
+  }
+}
+
+void
+handle_ansi_sgr(int param)
+{
+  switch(param) {
+    case 0:  // reset
+      current_colour = 0x0700; // white on black
+      break;
+    case 1:  // bold
+      current_colour = (current_colour & 0x0F00) | 0x0800;
+      break;
+    case 30: // black foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0000;
+      break;
+    case 31: // red foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0400;
+      break;
+    case 32: // green foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0200;
+      break;
+    case 33: // yellow foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0600;
+      break;
+    case 34: // blue foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0100;
+      break;
+    case 35: // magenta foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0500;
+      break;
+    case 36: // cyan foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0300;
+      break;
+    case 37: // white foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0700;
+      break;
+
+    case 40: // black background
+      current_colour = (current_colour & 0x0FFF) | 0x0000;
+      break;
+    case 41: // red background
+      current_colour = (current_colour & 0x0FFF) | 0x4000;
+      break;
+    case 42: // green background
+      current_colour = (current_colour & 0x0FFF) | 0x2000;
+      break;
+    case 43: // yellow background
+      current_colour = (current_colour & 0x0FFF) | 0x6000;
+      break;
+    case 44: // blue background
+      current_colour = (current_colour & 0x0FFF) | 0x1000;
+      break;
+    case 45: // magenta background
+      current_colour = (current_colour & 0x0FFF) | 0x5000;
+      break;
+    case 46: // cyan background
+      current_colour = (current_colour & 0x0FFF) | 0x3000;
+      break;
+    case 47: // white background
+      current_colour = (current_colour & 0x0FFF) | 0x7000;
+      break;
+
+    case 90: // hi black foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0800;
+      break;
+    case 91: // hi red foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0C00;
+      break;
+    case 92: // hi green foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0A00;
+      break;
+    case 93: // hi yellow foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0E00;
+      break;
+    case 94: // hi blue foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0900;
+      break;
+    case 95: // hi magenta foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0D00;
+      break;
+    case 96: // hi cyan foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0B00;
+      break;
+    case 97: // hi white foreground
+      current_colour = (current_colour & 0xF0FF) | 0x0F00;
+      break;
+
+    case 100: // hi black background
+      current_colour = (current_colour & 0x0FFF) | 0x0000;
+      break;
+    case 101: // hi red background
+      current_colour = (current_colour & 0x0FFF) | 0xC000;
+      break;
+    case 102: // hi green background
+      current_colour = (current_colour & 0x0FFF) | 0xA000;
+      break;
+    case 103: // hi yellow background
+      current_colour = (current_colour & 0x0FFF) | 0xE000;
+      break;
+    case 104: // hi blue background
+      current_colour = (current_colour & 0x0FFF) | 0x9000;
+      break;
+    case 105: // hi magenta background
+      current_colour = (current_colour & 0x0FFF) | 0xD000;
+      break;
+    case 106: // hi cyan background
+      current_colour = (current_colour & 0x0FFF) | 0xB000;
+      break;
+    case 107: // hi white background
+      current_colour = (current_colour & 0x0FFF) | 0xF000;
+      break;
+  }
+}
+
 void
 consputc(int c)
 {
@@ -314,15 +481,64 @@ consputc(int c)
       ;
   }
 
-if(c == '\t'){
-    for(int i = 0; i < 8; i++)
-        uartputc(' ');
-} else if(c == BACKSPACE){
-    uartputc('\b'); uartputc(' '); uartputc('\b');
-} else {
-    uartputc(c);
-}
+  if(c == '\t'){
+      for(int i = 0; i < 8; i++)
+          uartputc(' ');
+  } else if(c == BACKSPACE){
+      uartputc('\b'); uartputc(' '); uartputc('\b');
+  } else {
+      uartputc(c);
+  }
 
+  switch(ansi_state) {
+    case ANSI_NORMAL:
+      if(c == 0x1B) { // ESC
+        ansi_state = ANSI_ESCAPE;
+        ansi_param_count = 0;
+	return;
+      } else {
+        cgaputc(c);  // noraml
+        return;
+      }
+      break;
+      
+    case ANSI_ESCAPE:
+      if(c == '[') {
+        ansi_state = ANSI_BRACKET;
+      } else {
+        ansi_state = ANSI_NORMAL;
+      }
+      return;
+      
+    case ANSI_BRACKET:
+      if(c >= '0' && c <= '9') {
+        ansi_params[ansi_param_count] = c - '0';
+        ansi_state = ANSI_PARAM;
+      } else if(c == 'm') {
+        handle_ansi_sgr(0);
+        ansi_state = ANSI_NORMAL;
+      } else {
+        ansi_state = ANSI_NORMAL; // invalid
+      }
+      return;
+      
+    case ANSI_PARAM:
+      if(c >= '0' && c <= '9') {
+        ansi_params[ansi_param_count] = ansi_params[ansi_param_count] * 10 + (c - '0');
+      } else if(c == ';') {
+        ansi_param_count++;
+        if(ansi_param_count >= 4) {
+          ansi_state = ANSI_NORMAL; // too short
+        }
+      } else if(c == 'm') {
+        ansi_param_count++; // end of seq
+        handle_ansi_sgr_sequence(ansi_params, ansi_param_count);
+        ansi_state = ANSI_NORMAL;
+      } else {
+        ansi_state = ANSI_NORMAL; // not valid
+      }
+      return;
+  }
 
   cgaputc(c);
 }

@@ -28,7 +28,6 @@ int
 main(void)
 {
   kinit1(end, P2V(4*1024*1024)); // phys page allocator
-  vgainit();	   // graphical VGA setup
   kvmalloc();      // kernel page table
   timeinit();	   // set up unix date&time
   mpinit();        // detect other processors

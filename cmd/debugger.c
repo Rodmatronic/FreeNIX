@@ -6,13 +6,21 @@
 int
 main()
 {
-  char* passwd=crypt("bingus", "po\0");
-  printf("%s\n", passwd);
-
-  for(int i = 0; i < 256; i++){
-  	  putchar(i);
+  for (int i = 0; i < 8; i++){
+	printf("\033[3%dm#", i);
   }
-  putchar('\n');
-
+  printf("\n");
+  for (int i = 0; i < 8; i++){
+	printf("\033[4%dm#", i);
+  }
+  printf("\033[0m\n");
+  for (int i = 0; i < 8; i++){
+	printf("\033[9%dm#", i);
+  }
+  printf("\n");
+  for (int i = 0; i < 8; i++){
+	printf("\033[10%dm#", i);
+  }
+  printf("\033[0m\n");
   return 0;
 }
