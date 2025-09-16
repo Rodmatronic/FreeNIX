@@ -26,7 +26,7 @@
 #ifndef _SYS_LIMITS_H_
 #define _SYS_LIMITS_H_
 
-#include <sys/cdefs.h>
+//#include <sys/cdefs.h>
 
 /* Common definitions for limits.h. */
 

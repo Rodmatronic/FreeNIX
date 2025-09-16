@@ -40,7 +40,7 @@
 #ifndef _CTYPE_H_
 #define _CTYPE_H_
 
-#include <sys/cdefs.h>
+//#include <sys/cdefs.h>
 
 #define	_CTYPE_U	0x01
 #define	_CTYPE_L	0x02

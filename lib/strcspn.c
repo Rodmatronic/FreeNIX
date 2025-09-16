@@ -31,7 +31,8 @@
  * SUCH DAMAGE.
  */
 
-#include "../include/string.h"
+//#include "../include/string.h"
+#include "../include/types.h"
 
 /*
  * Span the complement of string s2.
