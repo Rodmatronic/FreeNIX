@@ -86,7 +86,7 @@ AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
-CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -Oz -Wall -MD -m32 -fno-omit-frame-pointer -Wno-infinite-recursion -Wno-implicit-int -Wno-char-subscripts -Wno-implicit-function-declaration -Wno-dangling-else -Wno-int-conversion -Wno-missing-braces -Waggressive-loop-optimizations -Wno-return-type -Wno-main -Wa,--noexecstack
+CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -Oz -Wall -MD -m32 -fno-omit-frame-pointer -Wno-infinite-recursion -Wno-implicit-int -Wno-char-subscripts -Wno-implicit-function-declaration -Wno-dangling-else -Wno-int-conversion -Wno-missing-braces -Waggressive-loop-optimizations -Wno-return-type -Wa,--noexecstack
 
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide -Wa,--noexecstack
@@ -101,10 +101,10 @@ ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
 CFLAGS += -fno-pie -nopie
 endif
 
-xv6.img: $S/bootblock $S/kernel
+xv6.img: $S/bootblock $S/frunix
 	dd if=/dev/zero of=xv6.img count=10000
 	dd if=$S/bootblock of=xv6.img conv=notrunc
-	dd if=$S/kernel of=xv6.img seek=1 conv=notrunc
+	dd if=$S/frunix of=xv6.img seek=1 conv=notrunc
 
 xv6memfs.img: $S/bootblock $S/kernelmemfs
 	dd if=/dev/zero of=xv6memfs.img count=10000
@@ -131,10 +131,10 @@ $S/initcode: $S/initcode.S
 	$(OBJCOPY) -S -O binary $S/initcode.out $S/initcode
 	$(OBJDUMP) -S $S/initcode.o > $S/initcode.asm
 
-$S/kernel: $(OBJS) $S/entry.o $S/entryother $S/initcode $S/kernel.ld
-	$(LD) $(LDFLAGS) -T $S/kernel.ld -o $S/kernel $S/entry.o $(OBJS) -b binary $S/initcode $S/entryother
-	$(OBJDUMP) -S $S/kernel > $S/kernel.asm
-	$(OBJDUMP) -t $S/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $S/kernel.sym
+$S/frunix: $(OBJS) $S/entry.o $S/entryother $S/initcode $S/kernel.ld
+	$(LD) $(LDFLAGS) -T $S/kernel.ld -o $S/frunix $S/entry.o $(OBJS) -b binary $S/initcode $S/entryother
+	$(OBJDUMP) -S $S/frunix > $S/kernel.asm
+	$(OBJDUMP) -t $S/frunix | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $S/kernel.sym
 
 # kernelmemfs is a copy of kernel that maintains the
 # disk image in memory instead of writing to a disk.
@@ -248,7 +248,7 @@ clean:
 	$S/*.o $S/*.d $S/*.asm $S/*.sym $C/*.tex $C/*.dvi $C/*.idx $C/*.aux $C/*.log $C/*.ind $C/*.ilg \
 	$C/*.o $C/*.d $C/*.asm $C/*.sym $S/vectors.S $S/bootblock $S/entryother \
 	$L/*.o $L/*.d $L/*.asm $L/*.sym \
-	$S/initcode $S/initcode.out $S/kernel xv6.img $S/fs.img $S/kernelmemfs \
+	$S/initcode $S/initcode.out $S/frunix xv6.img $S/fs.img $S/kernelmemfs \
 	xv6memfs.img $S/mkfs .gdbinit \
 	$(UPROGS)
 
