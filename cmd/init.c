@@ -190,8 +190,9 @@ rstateid(const char* target_id)
     char buf[256];
     int fd = open("/etc/inittab", O_RDONLY);
     if (fd < 0) {
-        console("Failed to open /etc/inittab");
-        return 0;
+        console("Failed to read /etc/inittab");
+	single();
+	return -1;
     }
 
     int n;
@@ -271,7 +272,7 @@ sysinit(int argc, char** argv)
 	dup(0);
 	dup(0);
 
-	console("default run level: %d", rstateid("is"));
+	console("Default run level: %d", rstateid("is"));
 	runrc(rstateid("is"));
 
 	close(open(utmp, O_CREATE | O_RDWR));
