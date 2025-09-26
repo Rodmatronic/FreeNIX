@@ -134,10 +134,12 @@ char **argv;
 		write(f, &utmp, 16);
 		close(f);
 	}
-	char * tty = "console";
-	char hostname[128];
-	syslog(LOG_NOTICE, "ROOT LOGIN (%s) ON %s",
-			utmp.name, tty);
+	if (!uid){
+		char * tty = "console";
+		char hostname[128];
+		syslog(LOG_NOTICE, "ROOT LOGIN (%s) ON %s",
+				utmp.name, tty);
+	}
 	if ((f = open("/etc/motd", 0)) >= 0) {
 		while(read(f, &t, 1) > 0)
 			write(1, &t, 1);

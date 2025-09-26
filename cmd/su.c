@@ -19,6 +19,7 @@ char	**argv;
 	register struct passwd *pw;
 	register uid_t uid;
 
+	setprogname(argv[0]);
 	if(argc > 1)
 		nptr = argv[1];
 	else
