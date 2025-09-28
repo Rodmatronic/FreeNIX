@@ -12,6 +12,10 @@
 #define BACK  5
 #define MAXARGS 64
 int tflag = 0;
+int status=0;
+int fiskip=0;
+int ifflag=0;
+int thenflag=0;
 
 struct cmd {
   int type;
@@ -95,6 +99,7 @@ runcmd(struct cmd *cmd)
       }
 
       fprintf(stderr, "%s: not found\n", ecmd->argv[0]);
+      exit(2);
     }
     break;
 
@@ -199,6 +204,25 @@ readline(int fd, char *buf, int max)
 int
 shellcmds(char *buf)
 {
+  if(buf[0]=='f' && buf[1]=='i' && (buf[2]=='\0' || buf[2]=='\n' || buf[2]==' ')) {
+    if(!thenflag){
+        printf("syntax: unexpected 'fi'\n");
+    }
+    fiskip=0;
+    thenflag=0;
+    ifflag=0;
+    return 0;
+  }else
+  if(buf[0]=='t' && buf[1]=='h' && buf[2]=='e' && buf[3]=='n') {
+    if(!ifflag) {
+        printf("syntax: unexpected 'then'\n");
+        return 1;
+    }
+    thenflag = 1;
+    return 0;
+  }
+  if (fiskip)
+	  return 1;
   if(buf[0] == 'c' && buf[1] == 'd') {
     for (int i = sizeof(buf); i >= 2; i--){
       if (buf[i] == '\0' || buf[i] == " "[0] || buf[i] == "\n"[0]){
@@ -227,6 +251,19 @@ shellcmds(char *buf)
   } else
   if(buf[0] == 'e' && buf[1] == 'x' && buf[2] == 'i' && buf[3] == 't'){
     exit(0);
+  } else
+  if(buf[0] == 'i' && buf[1] == 'f' && buf[2] == ' ') {
+    if (fork1() == 0) {
+      runcmd(parsecmd(buf+3));
+    }
+    wait(&status);
+    ifflag=1;
+    if (status != 0){
+	    fiskip=1;
+    }
+    else
+	    fiskip=0;
+    return 0;
   } else
   if(buf[0] == '#'){
   } else {

@@ -22,5 +22,5 @@ main()
 	printf("\033[10%dm#", i);
   }
   printf("\033[0m\n");
-  return 1;
+  exit(1);
 }
