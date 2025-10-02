@@ -23,6 +23,7 @@ struct cpuident {
 };
 
 char * copyrightbsd = "Copyright (c) 1989, 1993 The Regents of the University of California.  All rights reserved.\n";
+char * copyrightxv6 = "Copyright (c) 2006-2018 Frans Kaashoek, Robert Morris, Russ Cox, The Massachusetts Institute of Technology\n";
 
 // Bootstrap processor starts running C code here.
 // Allocate a real stack and switch to it, first
@@ -32,6 +33,7 @@ main(void)
 {
   kinit1(end, P2V(4*1024*1024)); // phys page allocator
   cprintf("FreeNIX Release %s Version %s\n", sys_release, sys_version);
+  cprintf(copyrightxv6);
   cprintf(copyrightbsd);
   kvmalloc();      // kernel page table
   timeinit();	   // set up unix date&time
@@ -51,8 +53,6 @@ main(void)
   ideinit();       // disk 
   startothers();   // start other processors
   kinit2(P2V(4*1024*1024), P2V(PHYSTOP)); // must come after startothers()
-//  vgainit();
-//  postvbe=1;
   userinit();      // first user process
   mpmain();        // finish this processor's setup
 }
