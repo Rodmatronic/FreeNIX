@@ -288,7 +288,7 @@ qemu: $S/fs.img xv6.img
 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
 
 qemu-memfs: xv6memfs.img
-	$(QEMU) -cdrom frunix.iso -smp $(CPUS) -m 256
+	$(QEMU) -cdrom frunix.iso -smp $(CPUS) -m 256 -serial mon:stdio
 
 qemu-nox: $S/fs.img xv6.img
 	$(QEMU) -nographic $(QEMUOPTS)

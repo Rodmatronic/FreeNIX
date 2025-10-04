@@ -519,8 +519,7 @@ create(char *path, short type, short major, short minor)
   if ((ip = dirlookup(dp, name, 0)) != 0) {
     iunlockput(dp);
     ilock(ip);
-    if (((type & S_IFMT) == S_IFREG && (ip->mode & S_IFMT) == S_IFREG) ||
-		    ((ip->mode & S_IFMT) == S_IFCHR)) {
+    if ((type & S_IFMT) == S_IFREG) {
         return ip;
     }
     iunlockput(ip);
@@ -569,7 +568,7 @@ sys_open(void)
   begin_op();
 
   if(omode & O_CREAT){
-    ip = create(path, S_IFREG, 0, 0);
+    ip = create(path, S_IFREG | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH, 0, 0);
     if(ip == 0){
       end_op();
       return -1;
@@ -642,7 +641,7 @@ sys_mknod(void)
   if((argstr(0, &path)) < 0 ||
      argint(1, &major) < 0 ||
      argint(2, &minor) < 0 ||
-     (ip = create(path, S_IFCHR, major, minor)) == 0){
+     (ip = create(path, S_IFCHR | S_IRUSR | S_IWUSR, major, minor)) == 0){
     end_op();
     return -1;
   }

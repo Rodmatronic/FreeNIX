@@ -203,13 +203,6 @@ for (i = 2; i < argc; i++) {
     if (name[0] == '_')
         name++;
 
-    inum = ialloc(S_IFREG);
-
-    // Create directory entry
-    bzero(&de, sizeof(de));
-    de.inum = xshort(inum);
-    strncpy(de.name, name, DIRSIZ);
-
     char * bin_files[] = {
 	"cat",
 	"cp",
@@ -299,6 +292,23 @@ for (i = 2; i < argc; i++) {
 	    NULL
     };
 
+    uint mode;
+    if (exists_in_list(name, bin_files) ||
+        exists_in_list(name, usrbin_files) ||
+        exists_in_list(name, optbin_files) ||
+        exists_in_list(name, sbin_files)) {
+        mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+    } else {
+        mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+    }
+
+    inum = ialloc(mode);
+
+    // Create directory entry
+    bzero(&de, sizeof(de));
+    de.inum = xshort(inum);
+    strncpy(de.name, name, DIRSIZ);
+
     // append files to disk
     if (exists_in_list(name, etc_files)) {
  	if (strcmp(name, "master.passwd") == 0) { // prevent interfering
@@ -326,7 +336,7 @@ for (i = 2; i < argc; i++) {
         iappend(inum, buf, cc);
 
     close(fd);
-}
+  }
 
   // fix size of root inode dir
   rinode(rootino, &din);

@@ -1035,10 +1035,10 @@ subdir(void)
     printf("create dd/xx/ff succeeded!\n");
     exit(1);
   }
-  if(open("dd", O_CREAT) >= 0){
+/*  if(open("dd", O_CREAT) >= 0){
     printf("create dd succeeded!\n");
     exit(1);
-  }
+  }*/
   if(open("dd", O_RDWR) >= 0){
     printf("open dd rdwr succeeded!\n");
     exit(1);

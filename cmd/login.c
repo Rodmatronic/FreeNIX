@@ -153,7 +153,7 @@ char **argv;
 	if (*np == '\0')
 		np = "/bin/sh";
 	execl(np, 0);
-	write(1, "No shell.\n", 9);
+	printf("No shell.\n");
 	exit(1);
 bad:
 	write(1, "Login incorrect.\n", 17);
