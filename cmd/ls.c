@@ -3,6 +3,7 @@
 #include "../include/stdio.h"
 #include "../include/fs.h"
 #include "../include/fcntl.h"
+#include "../include/pwd.h"
 
 #define	NFILES	1024
 char	*pwdf, *dirf;
@@ -209,6 +210,7 @@ struct lbuf *ap;
 //	struct { char dminor, dmajor;};
 	register t;
 	register struct lbuf *p;
+	register struct passwd *pw;
 //	register char *cp;
 
 	p = ap;
@@ -225,10 +227,11 @@ struct lbuf *ap;
 		t = p->luid;
 		if(gflg)
 			t = p->lgid;
-		if (getname(t, tbuf)==0)
-			printf("%s", tbuf);
+		pw = getpwuid(t);
+		if (!pw->pw_name == NULL)
+			printf("%-6.6s", pw->pw_name);
 		else
-			printf("%d", t);
+			printf("%-6d", t);
 		if (p->ltype=='b' || p->ltype=='c')
 			printf("%3d,%3d", major((int)p->lsize), minor((int)p->lsize));
 		else

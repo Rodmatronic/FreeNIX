@@ -21,7 +21,7 @@ putc(int fd, char c)
 }
 
 static void
-printint(putch_fn putch, void *ctx, int xx, int base, int sgn, int width, int zero_pad)
+printint(putch_fn putch, void *ctx, int xx, int base, int sgn, int width, int zero_pad, int left_justify)
 {
     static char digits[] = "0123456789ABCDEF";
     char buf[16];
@@ -45,12 +45,18 @@ printint(putch_fn putch, void *ctx, int xx, int base, int sgn, int width, int ze
     int total_chars = total_digits + (neg ? 1 : 0);
     int pad = width > total_chars ? width - total_chars : 0;
 
-    if (zero_pad) {
+    if (left_justify) {
+        // left justified: content then padding
+        if (neg) putch('-', ctx);
+        while (--i >= 0) putch(buf[i], ctx);
+        for (int j = 0; j < pad; j++) putch(' ', ctx);
+    } else if (zero_pad) {
+        // zero padded: sign then zeros then digits
         if (neg) putch('-', ctx);
         for (int j = 0; j < pad; j++) putch('0', ctx);
         while (--i >= 0) putch(buf[i], ctx);
-    }
-    else {
+    } else {
+        // right justified: padding then sign then digits
         for (int j = 0; j < pad; j++) putch(' ', ctx);
         if (neg) putch('-', ctx);
         while (--i >= 0) putch(buf[i], ctx);
@@ -62,7 +68,8 @@ vprintfmt(putch_fn putch, void *ctx, const char *fmt, va_list ap)
 {
     char *s;
     int c, i, state;
-    int width, zero_pad;
+    int width, zero_pad, precision, left_justify;
+    int has_precision;
 
     state = 0;
     for(i = 0; fmt[i]; i++) {
@@ -72,20 +79,43 @@ vprintfmt(putch_fn putch, void *ctx, const char *fmt, va_list ap)
                 state = '%';
                 width = 0;
                 zero_pad = 0;
+                left_justify = 0;
+                precision = -1;
+                has_precision = 0;
             } else {
                 putch(c, ctx);
             }
         } else if(state == '%') {
-            if(c == '0') {
+            // parse flags
+            if (c == '-') {
+                left_justify = 1;
+                i++;
+                c = fmt[i] & 0xff;
+            } else if (c == '0') {
                 zero_pad = 1;
                 i++;
                 c = fmt[i] & 0xff;
             }
-            
+
+            // parse width
             while(c >= '0' && c <= '9') {
                 width = width * 10 + (c - '0');
                 i++;
                 c = fmt[i] & 0xff;
+            }
+
+            // parse precision
+            if(c == '.') {
+                has_precision = 1;
+                precision = 0;
+                i++;
+                c = fmt[i] & 0xff;
+
+                while(c >= '0' && c <= '9') {
+                    precision = precision * 10 + (c - '0');
+                    i++;
+                    c = fmt[i] & 0xff;
+                }
             }
 
             if(c == 'l') {
@@ -94,20 +124,48 @@ vprintfmt(putch_fn putch, void *ctx, const char *fmt, va_list ap)
             }
 
             if(c == 'd') {
-                printint(putch, ctx, va_arg(ap, int), 10, 1, width, zero_pad);
+                printint(putch, ctx, va_arg(ap, int), 10, 1, width, zero_pad, left_justify);
             } else if(c == 'u') {
-		printint(putch, ctx, va_arg(ap, int), 10, 0, width, zero_pad);
-	    } else if(c == 'x' || c == 'p') {
-                printint(putch, ctx, va_arg(ap, int), 16, 0, width, zero_pad);
+                printint(putch, ctx, va_arg(ap, int), 10, 0, width, zero_pad, left_justify);
+            } else if(c == 'x' || c == 'p') {
+                printint(putch, ctx, va_arg(ap, int), 16, 0, width, zero_pad, left_justify);
             } else if(c == 's') {
                 s = va_arg(ap, char*);
                 if(s == 0) s = "(null)";
-                while(*s != 0) {
-                    putch(*s, ctx);
-                    s++;
+
+                // calculate string length to print
+                int len = 0;
+                const char *p = s;
+                while (*p != 0) {
+                    if (has_precision && len >= precision) break;
+                    len++;
+                    p++;
+                }
+
+                int pad = width > len ? width - len : 0;
+                if (left_justify) {
+                    // left justified: string then spaces
+                    for (int j = 0; j < len; j++) {
+                        putch(s[j], ctx);
+                    }
+                    for (int j = 0; j < pad; j++) putch(' ', ctx);
+                } else {
+                    // right justified: spaces then string
+                    for (int j = 0; j < pad; j++) putch(' ', ctx);
+                    for (int j = 0; j < len; j++) {
+                        putch(s[j], ctx);
+                    }
                 }
             } else if(c == 'c') {
-                putch(va_arg(ap, int), ctx);
+		// justify
+                int pad = width > 1 ? width - 1 : 0;
+                if (left_justify) {
+                    putch(va_arg(ap, int), ctx);
+                    for (int j = 0; j < pad; j++) putch(' ', ctx);
+                } else {
+                    for (int j = 0; j < pad; j++) putch(' ', ctx);
+                    putch(va_arg(ap, int), ctx);
+                }
             } else if(c == '%') {
                 putch(c, ctx);
             } else {
@@ -117,6 +175,7 @@ vprintfmt(putch_fn putch, void *ctx, const char *fmt, va_list ap)
             state = 0;
             width = 0;
             zero_pad = 0;
+            left_justify = 0;
         }
     }
 }

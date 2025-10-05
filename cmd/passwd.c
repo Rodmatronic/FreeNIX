@@ -70,10 +70,10 @@ char *argv[];
 tryagn:
 	strcpy(pwbuf, getpass("New password:"));
 	pwlen = strlen(pwbuf);
-	if (pwlen == 0) {
+/*	if (pwlen == 0) {
 		printf("Password unchanged.\n");
 		goto bex;
-	}
+	}*/
 	ok = 0;
 	flags = 0;
 	p = pwbuf;
