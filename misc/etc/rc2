@@ -23,3 +23,7 @@ echo '.'
 
 sh /etc/rc.local
 date; echo
+
+echo 'Experimental build. Features are subject to change.'
+echo 'root account password is \'root\''
+echo 'This virtual harddisk is fresh on each boot, have fun!'; echo
