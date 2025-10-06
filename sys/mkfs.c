@@ -178,7 +178,10 @@ main(int argc, char *argv[])
   uint usrino = create_directory(rootino, "usr");
   create_directory(usrino, "adm");
   uint usrbinino = create_directory(usrino, "bin");
+  uint libino = create_directory(rootino, "lib");
+  uint libgameino = create_directory(libino, "game");
   uint usrmanino = create_directory(usrino, "man");
+  uint usrgamesino = create_directory(usrino, "games");
   uint manman1 = create_directory(usrmanino, "man1");
   uint homeino = create_directory(rootino, "home");
   uint homepouino = create_directory(homeino, "pou");
@@ -273,6 +276,16 @@ for (i = 2; i < argc; i++) {
 	NULL
     };
 
+    char * usrgames_files[] = {
+	"fortune",
+	NULL
+    };
+
+    char * libgame_files[] = {
+	"fortunes",
+	NULL
+    };
+
     char * manman1_files[] = {
 	"cd.1",
 	NULL
@@ -298,7 +311,8 @@ for (i = 2; i < argc; i++) {
     if (exists_in_list(name, bin_files) ||
         exists_in_list(name, usrbin_files) ||
         exists_in_list(name, optbin_files) ||
-        exists_in_list(name, sbin_files)) {
+        exists_in_list(name, sbin_files) ||
+    	exists_in_list(name, usrgames_files)){
         mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
     } else {
         mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
@@ -323,6 +337,10 @@ for (i = 2; i < argc; i++) {
 	iappend(usrbinino, &de, sizeof(de));
     } else if (exists_in_list(name, usrlib_files)) {
  	iappend(usrlibino, &de, sizeof(de));
+    } else if (exists_in_list(name, usrgames_files)) {
+	iappend(usrgamesino, &de, sizeof(de));
+    } else if (exists_in_list(name, libgame_files)) {
+	iappend(libgameino, &de, sizeof(de));
     } else if (exists_in_list(name, manman1_files)) {
 	iappend(manman1, &de, sizeof(de));
     } else if (exists_in_list(name, optbin_files)) {

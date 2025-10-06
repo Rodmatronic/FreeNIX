@@ -188,11 +188,11 @@ UPROGS=\
 	$C/_dd\
 	$C/_debugger\
 	$C/_dirname\
-	$C/_du\
 	$C/_echo\
 	$C/_ed\
 	$C/_env\
 	$C/_find\
+	$C/_fortune\
 	$C/_getty\
 	$C/_grep\
 	$C/_hostname\
@@ -232,6 +232,7 @@ UPROGS=\
 	$C/_hexdump\
 
 ETC=\
+    	$M/lib/fortunes\
     	$M/etc/rcS\
 	$M/etc/rc2\
 	$M/etc/rc.local\

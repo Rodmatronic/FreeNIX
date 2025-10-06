@@ -87,15 +87,41 @@ runcmd(struct cmd *cmd)
           has_slash = 1;
 
       if(!has_slash) {
-        const char *path_list[] = {"/bin", "/usr/bin", "/sbin"};
+        const char *pathenv = getenv("PATH");
+        if (!pathenv)
+            pathenv = "/bin:/usr/bin:/sbin";
+
         char new_path[128];
-        int i;
-        for(i = 0; i < sizeof(path_list)/sizeof(path_list[0]); i++) {
-          strcpy(new_path, path_list[i]);
-          strcat(new_path, "/");
-          strcat(new_path, ecmd->argv[0]);
-          exec(new_path, ecmd->argv);
-        }
+        const char *p = pathenv;
+
+        while (*p) {
+            /* find end of this path component */
+            const char *q = strchr(p, ':');
+            size_t comp_len = q ? (size_t)(q - p) : strlen(p);
+
+            if (comp_len == 0) {
+                /* "." + "/" + argv[0] + NUL */
+                if (1 + 1 + strlen(ecmd->argv[0]) + 1 <= sizeof(new_path)) {
+                    strcpy(new_path, ".");
+                    strcat(new_path, "/");
+                    strcat(new_path, ecmd->argv[0]);
+                    exec(new_path, ecmd->argv);
+                }
+            } else {
+                /* ensure we won't overflow new_path */
+                size_t name_len = strlen(ecmd->argv[0]);
+                if (comp_len + 1 + name_len + 1 <= sizeof(new_path)) {
+                  memcpy(new_path, p, comp_len);
+                  new_path[comp_len] = '\0';
+                  strcat(new_path, "/");
+                  strcat(new_path, ecmd->argv[0]);
+                  exec(new_path, ecmd->argv);
+                }
+            }
+
+            if (!q) break;
+            p = q + 1;
+          }
       }
 
       fprintf(stderr, "%s: not found\n", ecmd->argv[0]);

@@ -5,24 +5,25 @@ cat		openbsd	----o // DONE
 chmod		V7	----o // DONE
 cmp		sysv	----o // TODO: Remove for Copyright.
 cp		V6	----o // REPLACE
-cron		V6	----o // REPLACE
+cron		V6	-o--- // REPLACE
 date		pou	---o- // timezones!
 dd		V7	----o // DONE(?)
 dirname		openbsd	----o // DONE
-du		rod	---o- // '.' doesnt work
-echo		openbsd	----o // DONE
+du		rod	---o- // DONE(?)
+echo		openbsd	----o // DONE (Maybe add -e?)
 find		rod	----o // DONE(?)
+fortune		V7	----o // DONE
 getty		V6	-o--- // Does bare minimum
 grep		V7	----o // REPLACE
 hexdump		rod	---o- // Lacking options
 hostname	openbsd ----o // DONE
-init		rod	--o-- // DONE
+init		mocsysv	--o-- // DONE
 kill		openbsd	----o // DONE
 ln		openbsd	----o // DONE
 login		V6	----o // REPLACE
 ls		V7	---o- // Unfinished -l
 man		rod	---o- // Missing support for bold, italic, etc
-mkdir		opebsd	---o- // slightly buggy
+mkdir		openbsd	---o- // slightly buggy
 mknod		openbsd	----o // DONE
 more		rod	---o- // Works fine, just needs options.
 mv		V7	----o // REPLACE
@@ -41,8 +42,5 @@ which		openbsd	----o // DONE
 whoami		gnu	----o // DONE
 yes		openbsd	----o // DONE
 
-ISSUES
- o INIT is not up to a usable standard (check old unix source!)
- o LS has bad mode listing
- o 'cd' on it's own does NOT bring the user to their home
- o File INODES need permissions
+mocsysv? Means utilities not directly based on sysv code, but
+used as a reference.

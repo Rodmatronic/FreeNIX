@@ -119,8 +119,9 @@ char **argv;
 		write(1, "No directory\n", 13);
 		goto loop;
 	}
-	setenv("PWD", namep, 0);
-	setenv("HOME", namep, 0);
+	setenv("PWD", namep, 1);
+	setenv("HOME", namep, 1);
+	setenv("PATH", "/bin:/usr/bin:/sbin:/usr/games", 1);
 	time(utmp.time);
 	if ((f = open("/etc/utmp", 1)) >= 0) {
 		t = utmp.tty;
