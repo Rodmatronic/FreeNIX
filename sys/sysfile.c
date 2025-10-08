@@ -275,6 +275,11 @@ sys_chmod(void)
   }
 
   ilock(ip);
+  if (myproc()->uid != 0 && myproc()->uid != ip->uid) {
+    iunlock(ip);
+    end_op();
+    return -1;
+  }
   ip->mode = (ip->mode & ~0777) | (mode & 0777);
   iupdate(ip);
   iunlock(ip);
