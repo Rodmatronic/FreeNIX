@@ -275,7 +275,7 @@ sys_chmod(void)
   }
 
   ilock(ip);
-  if (myproc()->uid != 0 && myproc()->uid != ip->uid) {
+  if (myproc()->p_uid != 0 && myproc()->p_uid != ip->uid) {
     iunlock(ip);
     end_op();
     return -1;
@@ -569,8 +569,8 @@ create(char *path, short type, short major, short minor)
   ip->nlink = 1;
   ip->ctime = epoch_mktime();
   ip->lmtime = epoch_mktime();
-  ip->uid = myproc()->uid;
-  ip->gid = myproc()->gid;
+  ip->uid = myproc()->p_uid;
+  ip->gid = myproc()->p_gid;
   iupdate(ip);
 
   if(type == S_IFDIR){  // Create . and .. entries.
