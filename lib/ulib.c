@@ -27,6 +27,18 @@ void* realloc(void* ptr, uint new_size);
 #define MAX_ENV_NAME 32
 #define MAX_ENV_VALUE 128
 
+char *ttyname(int fd){
+	return "/dev/console";
+}
+
+unsigned int alarm(unsigned int seconds){
+    return 0;
+}
+
+int nice(int inc){
+    return 0;
+}
+
 int signal(int temp, int temp1)
 {
     return 0;
@@ -914,98 +926,10 @@ char	**argv, *opts;
 	return(c);
 }
 
-char *
-strtok(char *s, const char *delim)
-{
-	static char *last;
-	return strtok_r(s, delim, &last);
-}
-char *
-strtok_r(char *s, const char *delim, char **last)
-{
-	char *spanp;
-	int c, sc;
-	char *tok;
-	if (s == NULL && (s = *last) == NULL)
-		return (NULL);
-	/*
-	 * Skip (span) leading delimiters (s += strspn(s, delim), sort of).
-	 */
-cont:
-	c = *s++;
-	for (spanp = (char *)delim; (sc = *spanp++) != 0;) {
-		if (c == sc)
-			goto cont;
-	}
-	if (c == 0) {		/* no non-delimiter characters */
-		*last = NULL;
-		return (NULL);
-	}
-	tok = s - 1;
-	/*
-	 * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
-	 * Note that delim must have one NUL; we stop if we see that, too.
-	 */
-	for (;;) {
-		c = *s++;
-		spanp = (char *)delim;
-		do {
-			if ((sc = *spanp++) == c) {
-				if (c == 0)
-					s = NULL;
-				else
-					s[-1] = 0;
-				*last = s;
-				return (tok);
-			}
-		} while (sc != 0);
-	}
-	/* NOTREACHED */
-}
-
-char *
-strdup (const char *s) {
-  size_t len = strlen (s) + 1;
-  void *new = malloc (
-len);
-  if (new == NULL)
-    return NULL;
-  return (char *) memmove (new, s, len);
-}
-
 int
 abs (int i)
 {
   return i < 0 ? -i : i;
-}
-
-char *
-strcat(char *s1, const char *s2)
-{	/* copy char s2[] to end of s1[] */
-	char *s;
-	for (s = s1; *s != '\0'; ++s)
-		;			/* find end of s1[] */
-	for (; (*s = *s2) != '\0'; ++s, ++s2)
-		;			/* copy s2[] to end */
-	return (s1);
-}
-
-int
-toupper(int c)
-{
-  return islower (c) ? c - 'a' + 'A' : c;
-}
-
-char *
-strrchr (register const char *s, int c)
-{
-  char *rtnval = 0;
-
-  do {
-    if (*s == c)
-      rtnval = (char*) s;
-  } while (*s++);
-  return (rtnval);
 }
 
 static int is_leap_year(int year) {
@@ -1055,53 +979,11 @@ localtime(const unsigned long *timer) {
     return &tm;
 }
 
-char* strlcpy(char *s, const char *t, size_t size) {
-	return strcpy(s, t);
-}
-
-char*
-strcpy(char *s, const char *t)
-{
-  char *os;
-
-  os = s;
-  while((*s++ = *t++) != 0)
-    ;
-  return os;
-}
-
-int
-strcmp(const char *p, const char *q)
-{
-  while(*p && *p == *q)
-    p++, q++;
-  return (uchar)*p - (uchar)*q;
-}
-
-uint
-strlen(const char *s)
-{
-  int n;
-
-  for(n = 0; s[n]; n++)
-    ;
-  return n;
-}
-
 void*
 memset(void *dst, int c, uint n)
 {
   stosb(dst, c, n);
   return dst;
-}
-
-char*
-strchr(const char *s, char c)
-{
-  for(; *s; s++)
-    if(*s == c)
-      return (char*)s;
-  return 0;
 }
 
 int

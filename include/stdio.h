@@ -155,6 +155,7 @@ int setenv(const char *name, const char *value, int);
 int environ(char *buf, int buflen);
 int chmod(const char *path, mode_t mode);
 int reboot(int);
+int chown(const char *pathname, uid_t owner, gid_t group);
 
 // ulib.c
 int stat(const char*, struct stat*);

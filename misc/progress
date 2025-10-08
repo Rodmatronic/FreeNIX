@@ -20,7 +20,7 @@ hostname	openbsd ----o // DONE
 init		mocsysv	--o-- // DONE
 kill		openbsd	----o // DONE
 ln		openbsd	----o // DONE
-login		V6	----o // REPLACE
+login		movsysv	----o // DONE(?)
 ls		V7	---o- // Unfinished -l
 man		rod	---o- // Missing support for bold, italic, etc
 mkdir		openbsd	---o- // slightly buggy

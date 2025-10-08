@@ -8,217 +8,161 @@
 #include "../include/fs.h"
 #include "../include/fcntl.h"
 #include "../include/syslog.h"
+#include "../include/pwd.h"
+#include "../include/signal.h"
+#define SCPYN(a, b)	strncpy(a, b, sizeof(a))
 
 struct {
-	char	name[128];
+	char	ut_name[128];
 	char	tty;
+	int 	ut_line;
 	char	ifill;
-	int	time[2];
+	int	ut_time[2];
 	int	ufill;
 } utmp;
 
-struct stat statb;
-
+char	maildir[30] =	"/usr/spool/mail/";
+struct	passwd nouser = {"", "nope"};
 struct ttyb ttyb;
-
-char	*ttyx;
-
-#define	ECHO	010
+char	minusnam[16] = "-";
+char	homedir[64] = "HOME=";
+char	*envinit[] = {homedir, "PATH=:/bin:/usr/bin", 0};
+struct	passwd *pwd;
+static char loginmsg[] = "login: ";
+static char passwdmsg[] = "Password:";
+static char incorrectmsg[] = "Login incorrect\n";
+struct	passwd *getpwnam();
 
 main(argc, argv)
 char **argv;
 {
-	char pbuf[128];
-	char salt[3];
-//	char loginbuf[128];
-	register char *namep, *np;
-	char pwbuf[9];
-	int t, f, c, uid, gid;
-
-	setprogname(argv[0]);
-
-//	signal(3, 1);
-//	signal(2, 1);
-//	nice(0);
-	ttyx = "/dev/ttyx";
+	register char *namep;
+	int t, f, c;
+	char *ttyn;
 	if (getuid() != 0) {
 		write(1, "Sorry.\n", 7);
 		exit(1);
 	}
-//	ttyx[8] = utmp.tty;
+	alarm(60);
+//	signal(SIGQUIT, SIG_IGN);
+//	signal(SIGINT, SIG_IGN);
+	nice(-100);
+	nice(20);
+	nice(0);
 //	gtty(0, &ttyb);
-//	ttyb.erase = '#';
-//	ttyb.kill = '@';
-//	stty(ECHO);
-	loop:
-
+	ttyb.erase = '#';
+	ttyb.kill = '@';
+	for (t=3; t<20; t++)
+		close(t);
+	ttyn = ttyname(0);
+	if (ttyn==0)
+		ttyn = "/dev/tty??";
+    loop:
         ttyb.tflags = ECHO;
         stty(&ttyb);
-
-	memset(utmp.name, 0, sizeof(utmp.name));
-	namep = utmp.name;
-
+	SCPYN(utmp.ut_name, "");
 	if (argc>1) {
-		np = argv[1];
-		while (namep<utmp.name+8 && *np)
-			*namep++ = *np++;
+		SCPYN(utmp.ut_name, argv[1]);
 		argc = 0;
-	} else {
-		write(1, "login: ", 7);
+	}
+	while (utmp.ut_name[0] == '\0') {
+		namep = utmp.ut_name;
+		printf("%s %s", basename(ttyn), loginmsg);
 		while ((c = getchar()) != '\n') {
-			if (c <= 0)
+			if(c == ' ')
+				c = '_';
+			if (c == EOF)
 				exit(0);
-			if (namep < utmp.name+8)
+			if (namep < utmp.ut_name+8)
 				*namep++ = c;
 		}
 	}
-
-	*namep = '\0';
-	/* check for blank login */
-	if (utmp.name[0] == '\0')
-		goto loop;
-	if (getpwentry(utmp.name, pbuf))
-		goto bad;
-	np = colon(pbuf);
-	if (*np!=':') {
+	setpwent();
+	if ((pwd = getpwnam(utmp.ut_name)) == NULL)
+		pwd = &nouser;
+	endpwent();
+	if (*pwd->pw_passwd != '\0') {
 		ttyb.tflags &= ~ECHO;
 		stty(&ttyb);
-		write(1, "Password: ", 10);
-		namep = pwbuf;
-		while ((c=getchar()) != '\n') {
-			if (c <= 0)
-				exit(0);
-			if (namep<pwbuf+8)
-				*namep++ = c;
+		namep = crypt(getpass(passwdmsg),pwd->pw_passwd);
+		if (strcmp(namep, pwd->pw_passwd)) {
+			ttyb.tflags = ECHO;
+			stty(&ttyb);
+			goto bad;
 		}
-		*namep++ = '\0';
 		ttyb.tflags = ECHO;
 		stty(&ttyb);
-		write(1, "\n", 1);
-		salt[0] = np[0];
-		salt[1] = np[1];
-		salt[2] = '\0';
-		namep = crypt(pwbuf, salt);
-		while (*namep++ == *np++);
-		if (*--namep!='\0' || *--np!=':')
-			goto bad;
 	}
-	np = colon(np);
-	uid = 0;
-	while (*np != ':')
-		uid = uid*10 + *np++ - '0';
-	np++;
-	gid = 0;
-	while (*np != ':')
-		gid = gid*10 + *np++ - '0';
-	np++;
-	np = colon(np);
-	namep = np;
-	np = colon(np);
-	if (chdir(namep)<0) {
-		write(1, "No directory\n", 13);
+	setenv("PWD", pwd->pw_dir, 1);
+	setenv("HOME", pwd->pw_dir, 1);
+	if( chdir(pwd->pw_dir) < 0 )
+	{
+		printf("Unable to change directory to \"%s\"\n",pwd->pw_dir);
 		goto loop;
 	}
-	setenv("PWD", namep, 1);
-	setenv("HOME", namep, 1);
-	setenv("PATH", "/bin:/usr/bin:/sbin:/usr/games", 1);
-	time(utmp.time);
-	if ((f = open("/etc/utmp", 1)) >= 0) {
-		t = utmp.tty;
-		if (t>='a')
-			t =- 'a' - (10+'0');
-		lseek(f, (t-'0')*16, 0);
-		write(f, &utmp, 16);
+	time(&utmp.ut_time);
+/*	t = ttyslot();
+	if (t>0 && (f = open("/etc/utmp", 1)) >= 0) {
+		lseek(f, (long)(t*sizeof(utmp)), 0);
+		SCPYN(utmp.ut_line, index(ttyn+1, '/')+1);
+		write(f, (char *)&utmp, sizeof(utmp));
 		close(f);
 	}
-	if ((f = open("/usr/adm/wtmp", 1)) >= 0) {
-		lseek(f, 0, 2);
-		write(f, &utmp, 16);
+	if (t>0 && (f = open("/usr/adm/wtmp", 1)) >= 0) {
+		lseek(f, 0L, 2);
+		write(f, (char *)&utmp, sizeof(utmp));
 		close(f);
 	}
-	if (!uid){
-		char * tty = "console";
-		syslog(LOG_NOTICE, "ROOT LOGIN (%s) ON %s",
-				utmp.name, tty);
+	chown(ttyn, pwd->pw_uid, pwd->pw_gid);*/
+	setgid(pwd->pw_gid);
+	setuid(pwd->pw_uid);
+	if (*pwd->pw_shell == '\0')
+		pwd->pw_shell = "/bin/sh";
+	setenv("PATH", ":/bin:/usr/bin:/sbin:/usr/games", 1);
+	strncat(homedir, pwd->pw_dir, sizeof(homedir)-6);
+	if ((namep = rindex(pwd->pw_shell, '/')) == NULL)
+		namep = pwd->pw_shell;
+	else
+		namep++;
+	strcat(minusnam, namep);
+	alarm(0);
+	umask(02);
+	showmotd();
+	strcat(maildir, pwd->pw_name);
+	if(access(maildir,4)==0) {
+		struct stat statb;
+		stat(maildir, &statb);
+		if (statb.st_size)
+			printf("You have mail.\n");
 	}
-	if ((f = open("/etc/motd", 0)) >= 0) {
-		while(read(f, &t, 1) > 0)
-			write(1, &t, 1);
-		close(f);
-	}
-	if(stat(".mail", &statb) >= 0 && statb.st_size)
-		write(1, "You have mail.\n", 15);
-	//chown(ttyx, uid);
-	setgid(gid);
-	setuid(uid);
-	if (*np == '\0')
-		np = "/bin/sh";
-	execl(np, 0);
-	printf("No shell.\n");
-	exit(1);
+//	signal(SIGQUIT, SIG_DFL);
+//	signal(SIGINT, SIG_DFL);
+	execl(pwd->pw_shell, minusnam, 0);
+	printf("No shell\n");
+	exit(0);
 bad:
-	write(1, "Login incorrect.\n", 17);
+	printf(incorrectmsg);
 	execl("/sbin/login", "login", 0);
 	goto loop; // old fallback
 }
 
-int
-getpwentry(name, buf)
-char *name;
-char *buf;
+int	stopmotd;
+catch()
 {
-    int fi;
-    int r = 1;
-    if((fi = open("/etc/passwd", 0)) < 0)
-        return r;
-
-    int c;
-    register char *gnp, *rnp;
-
-    while(1) {
-        rnp = buf;
-        // Read a line from passwd file
-        while((c = getc(fi)) != '\n' && c != '\0' && c != -1) {
-            *rnp++ = c;
-        }
-        if(c <= 0) break;
-
-        *rnp = '\0';
-
-        gnp = name;
-        rnp = buf;
-        int match = 1;
-
-        // Compare until colon or end of either string
-        while(*gnp != '\0' && *rnp != ':' && *rnp != '\0') {
-            if(*gnp++ != *rnp++) {
-                match = 0;
-                break;
-            }
-        }
-
-        if(match && *gnp == '\0' && *rnp == ':') {
-            r = 0;
-            break;
-        }
-    }
-
-    close(fi);
-    return r;
+//	signal(SIGINT, SIG_IGN);
+	stopmotd++;
 }
 
-colon(p)
-char *p;
+showmotd()
 {
-	register char *rp;
+	FILE *mf;
+	register c;
 
-	rp = p;
-	while (*rp != ':') {
-		if (*rp++ == '\0') {
-			write(1, "Bad /etc/passwd\n", 16);
-			exit(1);
-		}
+//	signal(SIGINT, catch);
+	if((mf = open("/etc/motd",O_RDONLY)) != NULL) {
+		while((c = getc(mf)) != EOF && stopmotd == 0)
+			putchar(c);
+		fclose(mf);
 	}
-	*rp++ = '\0';
-	return(rp);
+//	signal(SIGINT, SIG_IGN);
 }

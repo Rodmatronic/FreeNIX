@@ -154,7 +154,7 @@ tags: $(OBJS) $S/entryother.S $S/_init
 $S/vectors.S: $S/vectors.pl
 	$S/vectors.pl > $S/vectors.S
 
-ULIB = $L/ulib.o $S/usys.o $S/printf.o $S/umalloc.o $L/udate.o $L/errno.o $C/font8x16.o $L/ugraphics.o $L/ucrypt.o $L/setmode.o $L/reallocarray.o $L/strtoul.o $L/isctype.o $L/strcspn.o $L/strspn.o $L/strsep.o $L/syslog.o
+ULIB = $L/ulib.o $S/usys.o $S/printf.o $S/umalloc.o $L/udate.o $L/errno.o $C/font8x16.o $L/ugraphics.o $L/ucrypt.o $L/setmode.o $L/reallocarray.o $L/isctype.o $L/syslog.o $L/string.o
 
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^

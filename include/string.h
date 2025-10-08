@@ -1,10 +1,9 @@
-/*	$OpenBSD: strcspn.c,v 1.6 2015/08/31 02:53:57 guenther Exp $ */
+/*	$OpenBSD: string.h,v 1.34 2024/08/03 20:13:23 guenther Exp $	*/
+/*	$NetBSD: string.h,v 1.6 1994/10/26 00:56:30 cgd Exp $	*/
+
 /*-
  * Copyright (c) 1990 The Regents of the University of California.
  * All rights reserved.
- *
- * This code is derived from software contributed to Berkeley by
- * Chris Torek.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,31 +28,13 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ *	@(#)string.h	5.10 (Berkeley) 3/9/91
  */
 
-//#include "../include/string.h"
-#include "../include/types.h"
+#ifndef _STRING_H_
+#define	_STRING_H_
 
-/*
- * Span the complement of string s2.
- */
-size_t
-strcspn(const char *s1, const char *s2)
-{
-	const char *p, *spanp;
-	char c, sc;
+#include "types.h"
 
-	/*
-	 * Stop as soon as we find any character from s2.  Note that there
-	 * must be a NUL in s2; it suffices to stop when we find that, too.
-	 */
-	for (p = s1;;) {
-		c = *p++;
-		spanp = s2;
-		do {
-			if ((sc = *spanp++) == c)
-				return (p - 1 - s1);
-		} while (sc != 0);
-	}
-	/* NOTREACHED */
-}
+#endif /* _STRING_H_ */

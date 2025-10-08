@@ -289,6 +289,40 @@ sys_chmod(void)
 }
 
 int
+sys_chown(void)
+{
+  char *path;
+  int owner, group;
+  struct inode *ip;
+
+  // Fetch syscall arguments: path, uid, gid
+  if (argstr(0, &path) < 0 || argint(1, &owner) < 0 || argint(2, &group) < 0)
+    return -1;
+
+  begin_op();
+  if ((ip = namei(path)) == 0) {
+    end_op();
+    return -1;
+  }
+
+  ilock(ip);
+  if (myproc()->p_uid != 0 && myproc()->p_uid != ip->uid) {
+    iunlock(ip);
+    end_op();
+    return -1;
+   }
+
+  ip->uid = owner;
+  ip->gid = group;
+
+  iupdate(ip);
+  iunlock(ip);
+  end_op();
+
+  return 0;
+}
+
+int
 sys_lseek(void)
 {
     struct file *f;
