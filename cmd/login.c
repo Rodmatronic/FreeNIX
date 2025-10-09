@@ -10,6 +10,7 @@
 #include "../include/syslog.h"
 #include "../include/pwd.h"
 #include "../include/signal.h"
+#include "../include/errno.h"
 #define SCPYN(a, b)	strncpy(a, b, sizeof(a))
 
 struct {
@@ -23,7 +24,8 @@ struct {
 
 char	maildir[30] =	"/usr/spool/mail/";
 struct	passwd nouser = {"", "nope"};
-struct ttyb ttyb;
+struct 	ttyb ttyb;
+char	*ttyprompt = NULL;
 char	minusnam[16] = "-";
 char	homedir[64] = "HOME=";
 char	*envinit[] = {homedir, "PATH=:/bin:/usr/bin", 0};
@@ -37,10 +39,11 @@ main(argc, argv)
 char **argv;
 {
 	register char *namep;
-	int t, f, c;
+	int t, c;
 	char *ttyn;
+	setprogname(argv[0]);
 	if (getuid() != 0) {
-		write(1, "Sorry.\n", 7);
+		fprintf(stderr, "%s: %s\n", getprogname(), strerror(EPERM));
 		exit(1);
 	}
 	alarm(60);
@@ -67,7 +70,11 @@ char **argv;
 	}
 	while (utmp.ut_name[0] == '\0') {
 		namep = utmp.ut_name;
-		printf("%s %s", basename(ttyn), loginmsg);
+		ttyprompt = getenv("TTYPROMPT");
+		if ((ttyprompt == NULL) || (*ttyprompt == '\0'))
+			fputs(loginmsg, stdout);
+		else
+			fputs(ttyprompt, stdout);
 		while ((c = getchar()) != '\n') {
 			if(c == ' ')
 				c = '_';

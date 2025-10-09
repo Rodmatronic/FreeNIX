@@ -10,7 +10,6 @@ mkdir -p "$WORKDIR/boot/grub"
 
 cat > "$WORKDIR/boot/grub/grub.cfg" <<EOF
 set timeout=0
-set default=0
 
 menuentry "FreeNIX" {
 	echo 'Starting FreeNIX...'

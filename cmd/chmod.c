@@ -65,7 +65,7 @@ unsigned nm;
 		return(m);
 	do {
 		m = who();
-		while (o = what()) {
+		while ((o = what())) {
 			b = where(nm);
 			switch (o) {
 			case '+':
