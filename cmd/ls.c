@@ -43,45 +43,7 @@ long	nblock();
 
 #define	ISARG	0100000
 
-/*// Swap helper for qsort
-static void swap(char *a, char *b, int size) {
-    char tmp;
-    for (int i = 0; i < size; i++) {
-        tmp = a[i];
-        a[i] = b[i];
-        b[i] = tmp;
-    }
-}
-
-// Quicksort implementation
-void qsort(void *base, int nmemb, int size, int (*compar)(const void *, const void *)) {
-    if (nmemb <= 1) return;
-
-    char *p = (char *)base;
-    int i = 0;
-
-    // Choose last element as pivot
-    char *pivot = p + (nmemb - 1) * size;
-
-    for (int j = 0; j < nmemb - 1; j++) {
-        if (compar(p + j * size, pivot) < 0) {
-            if (i != j) {
-                swap(p + i * size, p + j * size, size);
-            }
-            i++;
-        }
-    }
-
-    if (i != nmemb - 1) {
-        swap(p + i * size, pivot, size);
-    }
-
-    qsort(p, i, size, compar);
-    qsort(p + (i + 1) * size, nmemb - i - 1, size, compar);
-}*/
-
 char *pwdfname = NULL;
-
 void rewind_pwdf() {
     if (pwdf >= 0) close(pwdf);
     pwdf = open(pwdfname, O_RDONLY);
@@ -91,23 +53,117 @@ void rewind_pwdf() {
     }
 }
 
+void
+get_cols_rows(cols_p, rows_p)
+int *cols_p;
+int *rows_p;
+{
+	char *s;
+
+	*cols_p = 80;
+	*rows_p = 25;
+
+	s = getenv("COLUMNS");
+	if (s && *s)
+		*cols_p = atoi(s);
+	s = getenv("ROWS");
+	if (s && *s)
+		*rows_p = atoi(s);
+
+	if (*cols_p <= 0) *cols_p = 80;
+	if (*rows_p <= 0) *rows_p = 25;
+}
+
+void
+printcols(entries, n)
+struct lbuf **entries;
+int n;
+{
+	int i, j, cols, rows;
+	int maxlen = 0;
+	int opterr=0;
+	int term_cols, term_rows;
+	char *name;
+	int colwidth;
+
+	if (n <= 0)
+	return;
+
+	get_cols_rows(&term_cols, &term_rows);
+
+	/* find longest name length */
+	for (i = 0; i < n; i++) {
+		if (entries[i]->lflags & ISARG)
+			name = entries[i]->ln.namep;
+		else
+			name = entries[i]->ln.lname;
+		if (name) {
+			int len = strlen(name);
+			if (len > maxlen)
+				maxlen = len;
+		}
+	}
+
+	colwidth = maxlen + 2;
+	if (colwidth <= 0)
+		colwidth = 1;
+
+	cols = term_cols / colwidth;
+	if (cols < 1)
+		cols = 1;
+	rows = (n + cols - 1) / cols;
+
+	/* print row by row */
+	for (i = 0; i < rows; i++) {
+		int linelen = 0;
+		for (j = 0; j < cols; j++) {
+			int idx = j * rows + i;
+			int k, len;
+			if (idx >= n)
+				continue;
+			if (entries[idx]->lflags & ISARG)
+				name = entries[idx]->ln.namep;
+			else
+				name = entries[idx]->ln.lname;
+			if (!name)
+				name = "";
+			fputs(name, stdout);
+			len = strlen(name);
+			linelen += len;
+			/* only pad if not last column */
+			if (j < cols - 1 && (j + 1) * rows < n) {
+				int spaces = colwidth - len;
+				while (spaces-- > 0 && linelen < term_cols - 1) {
+					putchar(' ');
+					linelen++;
+				}
+			}
+		}
+		putchar('\n');
+	}
+}
+
+int
 main(argc, argv)
 char *argv[];
 {
-	int i;
+	int i, c;
 	register struct lbuf *ep, **ep1;
 	register struct lbuf **slastp;
 	struct lbuf **epp;
 	struct lbuf lb;
 	char *t;
 	int compar();
+	int onecol = 0;
+	int opterr=0;
 
 	time(&lb.lmtime);
 	year = lb.lmtime - 6L*30L*24L*60L*60L; /* 6 months ago */
-	if (--argc > 0 && *argv[1] == '-') {
-		argv++;
-		while (*++*argv) switch (**argv) {
-
+	while ((c=getopt(argc, argv,
+			"1lasdglrtucif")) != EOF) switch(c) {
+		case '1':
+			onecol=1;
+			continue;
 		case 'a':
 			aflg++;
 			continue;
@@ -155,11 +211,18 @@ char *argv[];
 			fflg++;
 			continue;
 
+		case '?':
+			opterr++;
+
 		default:
 			continue;
-		}
-		argc--;
 	}
+
+	if(opterr) {
+		fprintf(stderr,"usage: ls -1lasdglrtucif [files]\n");
+		exit(2);
+	}
+
 	if (fflg) {
 		aflg++;
 		lflg = 0;
@@ -173,14 +236,17 @@ char *argv[];
 			t = "/etc/group";
 		pwdf = open(t, O_RDONLY);
 	}
-	if (argc==0) {
-		argc++;
-		argv = &dotp - 1;
+	argc -= optind;
+	argv += optind;
+
+	if (argc == 0) {
+		argc = 1;
+		argv = &dotp - 1;   /* default to "." */
 	}
-	for (i=0; i < argc; i++) {
-		if ((ep = gstat(*++argv, 1))==NULL)
+	for (i = 0; i < argc; i++) {
+		if ((ep = gstat(argv[i], 1)) == NULL)
 			continue;
-		ep->ln.namep = *argv;
+		ep->ln.namep = argv[i];
 		ep->lflags |= ISARG;
 	}
 	qsort(firstp, lastp - firstp, sizeof *lastp, compar);
@@ -196,8 +262,28 @@ char *argv[];
 				qsort(slastp,lastp - slastp,sizeof *lastp,compar);
 			if (lflg || sflg)
 				printf("total %d\n", tblocks);
-			for (ep1=slastp; ep1<lastp; ep1++)
-				pentry(*ep1);
+
+			if (!lflg && !sflg && !iflg && !onecol) {
+				int n = lastp - slastp;
+				struct lbuf **arr;
+				int k;
+				if (n > 0) {
+					arr = (struct lbuf **) malloc(sizeof(struct lbuf *) * n);
+					if (arr) {
+						for (k = 0; k < n; k++)
+							arr[k] = slastp[k];
+						printcols(arr, n);
+						free(arr);
+					} else {
+						/* On malloc failure, fall back to line by line */
+						for (ep1=slastp; ep1<lastp; ep1++)
+							pentry(*ep1);
+					}
+				}
+			} else {
+				for (ep1=slastp; ep1<lastp; ep1++)
+					pentry(*ep1);
+			}
 		} else
 			pentry(ep);
 	}
