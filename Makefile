@@ -181,6 +181,7 @@ UPROGS=\
         $C/_basename\
 	$C/_cat\
 	$C/_chmod\
+	$C/_chown\
 	$C/_cmp\
 	$C/_cp\
 	$C/_cron\
@@ -215,15 +216,11 @@ UPROGS=\
 	$C/_rmdir\
 	$C/_sh\
 	$C/_su\
-	$C/_desktop\
-	$C/_hellogui\
 	$C/_reboot\
 	$C/_sleep\
 	$C/_stressfs\
 	$C/_touch\
 	$C/_uname\
-	$C/_unlink\
-	$C/_uptime\
 	$C/_wc\
 	$C/_which\
 	$C/_whoami\

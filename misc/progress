@@ -2,7 +2,8 @@ NAME		UNIX	FUNC?
 banner		openbsd	----o // DONE
 basename	openbsd	----o // DONE
 cat		openbsd	----o // DONE
-chmod		V7	----o // DONE
+chmod		V7	----o // DONE(?) // needs -R
+chown		V7	----o // DONE
 cmp		sysv	----o // TODO: Remove for Copyright.
 cp		V6	----o // REPLACE
 cron		V6	-o--- // REPLACE
@@ -11,6 +12,7 @@ dd		V7	----o // DONE(?)
 dirname		openbsd	----o // DONE
 du		rod	---o- // DONE(?)
 echo		openbsd	----o // DONE (Maybe add -e?)
+env		openbsd ----o // DONE
 find		rod	----o // DONE(?)
 fortune		V7	----o // DONE
 getty		V6	-o--- // Does bare minimum

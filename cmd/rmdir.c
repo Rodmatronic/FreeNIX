@@ -1,3 +1,7 @@
+/*
+ * Remove directory
+ */
+
 #include "../include/types.h"
 #include "../include/stat.h"
 #include "../include/stdio.h"
@@ -15,8 +19,8 @@ int argc;
 char **argv;
 {
 	if(argc < 2) {
-		fprintf(stderr, "rmdir: arg count\n");
-		exit(1);
+                fprintf(stderr, "rmdir: usage: rmdir dirname ...\n");
+                exit(2);
 	}
 	while(--argc)
 		rmdir(*++argv);

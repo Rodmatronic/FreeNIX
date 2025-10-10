@@ -118,7 +118,7 @@ int n;
 		int linelen = 0;
 		for (j = 0; j < cols; j++) {
 			int idx = j * rows + i;
-			int k, len;
+			int len;
 			if (idx >= n)
 				continue;
 			if (entries[idx]->lflags & ISARG)
