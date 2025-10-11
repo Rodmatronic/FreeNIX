@@ -227,6 +227,7 @@ UPROGS=\
 	$C/_yes\
 	$C/_paint2\
 	$C/_hexdump\
+	$C/_ps\
 
 ETC=\
     	$M/lib/fortunes\

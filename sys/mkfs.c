@@ -225,6 +225,7 @@ for (i = 2; i < argc; i++) {
 	"mkdir",
 	"mv",
 	"passwd",
+	"ps",
 	"pwd",
 	"rm",
 	"rmdir",
