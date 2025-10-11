@@ -40,3 +40,4 @@
 #define SYS_chmod 39
 #define SYS_reboot 40
 #define SYS_chown 41
+#define SYS_getproc 42

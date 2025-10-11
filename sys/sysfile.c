@@ -199,6 +199,11 @@ sys_devctl(void)
 		}
 	}
   }
+  if (dev == 3) { // process
+	if (sig == 0) {
+		return getmaxpid();
+	}
+  }
   return -1;
 }
 
@@ -630,7 +635,7 @@ sys_open(void)
   int fd, omode;
   struct file *f;
   struct inode *ip;
-  struct proc *p = myproc();
+  //struct proc *p = myproc();
 
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
     return -1;

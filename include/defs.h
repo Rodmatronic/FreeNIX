@@ -158,6 +158,7 @@ void            userinit(void);
 int             wait(int *status);
 void            wakeup(void*);
 void            yield(void);
+int		getmaxpid(void);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

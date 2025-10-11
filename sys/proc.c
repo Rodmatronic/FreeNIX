@@ -20,6 +20,55 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
+int
+getmaxpid(void)
+{
+    struct proc *p;
+    int max_pid = 0;
+
+    acquire(&ptable.lock);
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state != UNUSED && p->p_pid > max_pid) {
+            max_pid = p->p_pid;
+        }
+    }
+    release(&ptable.lock);
+    return max_pid;
+}
+
+int
+sys_getproc(void)
+{
+    int pid;
+    struct uproc u;
+    struct proc *p;
+    struct uproc *dst;
+
+    if (argint(0, &pid) < 0) return -1;
+    if (argptr(1, (void *)&dst, sizeof(*dst)) < 0) return -1;
+
+    acquire(&ptable.lock);
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->p_pid == pid && p->state != UNUSED) {
+	    u.sz = p->sz;
+            u.p_pid = p->p_pid;
+	    u.killed = p->killed;
+            safestrcpy(u.name, p->name, sizeof(u.name));
+            u.state = p->state;
+            u.p_uid = p->p_uid;
+            u.p_gid = p->p_gid;
+	    u.exitstatus = p->exitstatus;
+	    u.ttyflags = p->ttyflags;   
+            release(&ptable.lock);
+                if (copyout(myproc()->pgdir, (uint)dst, (char *)&u, sizeof(u)) < 0)
+                        return -1;
+            return 0;
+        }
+    }
+    release(&ptable.lock);
+    return -1;
+}
+
 void
 pinit(void)
 {

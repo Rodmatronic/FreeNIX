@@ -71,6 +71,19 @@ struct proc {
   int env_count;               // Number of environment variables
 };
 
+// for userspace proc shenanigans
+struct uproc {
+  uint sz;                     // Size of process memory (bytes)
+  enum procstate state;        // Process state
+  int p_pid;                     // Process ID
+  int killed;                  // If non-zero, have been killed
+  char name[16];               // Process name (debugging)
+  int p_uid;                     // User ID
+  int p_gid;                   // Group ID
+  int exitstatus;              // Exit status number
+  int ttyflags;                // TTY flags
+};
+
 // Process memory is laid out contiguously, low addresses first:
 //   text
 //   original data and bss

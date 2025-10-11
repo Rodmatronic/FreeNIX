@@ -124,6 +124,7 @@ extern int sys_environ(void);
 extern int sys_chmod(void);
 extern int sys_reboot(void);
 extern int sys_chown(void);
+extern int sys_getproc(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -167,6 +168,7 @@ static int (*syscalls[])(void) = {
 [SYS_chmod]   sys_chmod,
 [SYS_reboot]  sys_reboot,
 [SYS_chown]   sys_chown,
+[SYS_getproc] sys_getproc,
 };
 
 void

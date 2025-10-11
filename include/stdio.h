@@ -10,6 +10,20 @@ struct rtcdate;
 #include "../include/stdarg.h"
 #include "../include/fs.h"
 
+enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+
+struct uproc {
+  uint sz;                     // Size of process memory (bytes)
+  enum procstate state;        // Process state
+  int p_pid;                     // Process ID
+  int killed;                  // If non-zero, have been killed
+  char name[16];               // Process name (debugging)
+  int p_uid;                     // User ID
+  int p_gid;                   // Group ID
+  int exitstatus;              // Exit status number
+  int ttyflags;                // TTY flags
+};
+
 #define	CTL_HW		6		/* generic CPU/io */
 #define	HW_MACHINE_ARCH	10		/* string: machine architecture */
 #define NSIG 64
@@ -156,6 +170,7 @@ int environ(char *buf, int buflen);
 int chmod(const char *path, mode_t mode);
 int reboot(int);
 int chown(const char *pathname, uid_t owner, gid_t group);
+int getproc(pid_t, struct uproc *up);
 
 // ulib.c
 int stat(const char*, struct stat*);
