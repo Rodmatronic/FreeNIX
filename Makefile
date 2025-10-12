@@ -5,38 +5,38 @@ I=include
 L=lib
 
 OBJS = \
-	$S/bio.o\
-	$S/console.o\
-	$S/exec.o\
-	$S/file.o\
-	$S/font8x8.o\
-	$S/fs.o\
-	$S/ide.o\
-	$S/ioapic.o\
-	$S/kalloc.o\
-	$S/kbd.o\
-	$S/lapic.o\
-	$S/log.o\
-	$S/main.o\
-	$S/mp.o\
-	$S/mouse.o\
-	$S/picirq.o\
-	$S/pipe.o\
-	$S/proc.o\
-	$S/sleeplock.o\
-	$S/spinlock.o\
-	$S/string.o\
-	$S/swtch.o\
-	$S/syscall.o\
-	$S/sysfile.o\
-	$S/sysproc.o\
-	$S/trapasm.o\
-	$S/trap.o\
-	$S/time.o\
-	$S/uart.o\
-	$S/vectors.o\
-	$S/vm.o\
-	$S/vbe.o\
+	$S/os/bio.o\
+	$S/driver/console.o\
+	$S/os/exec.o\
+	$S/os/file.o\
+	$S/graph/font8x8.o\
+	$S/os/fs.o\
+	$S/driver/ide.o\
+	$S/os/ioapic.o\
+	$S/os/kalloc.o\
+	$S/driver/kbd.o\
+	$S/os/lapic.o\
+	$S/os/log.o\
+	$S/os/main.o\
+	$S/os/mp.o\
+	$S/driver/mouse.o\
+	$S/os/picirq.o\
+	$S/os/pipe.o\
+	$S/os/proc.o\
+	$S/os/sleeplock.o\
+	$S/os/spinlock.o\
+	$S/os/string.o\
+	$S/os/swtch.o\
+	$S/sys/syscall.o\
+	$S/sys/sysfile.o\
+	$S/sys/sysproc.o\
+	$S/boot/trapasm.o\
+	$S/os/trap.o\
+	$S/os/time.o\
+	$S/driver/uart.o\
+	$S/pl/vectors.o\
+	$S/os/vm.o\
+	$S/driver/vbe.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -101,38 +101,38 @@ ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
 CFLAGS += -fno-pie -nopie
 endif
 
-xv6.img: $S/bootblock $S/frunix
+xv6.img: $S/boot/bootblock $S/frunix
 	dd if=/dev/zero of=xv6.img count=10000
-	dd if=$S/bootblock of=xv6.img conv=notrunc
+	dd if=$S/boot/bootblock of=xv6.img conv=notrunc
 	dd if=$S/frunix of=xv6.img seek=1 conv=notrunc
 
-xv6memfs.img: $S/bootblock $S/kernelmemfs
+xv6memfs.img: $S/boot/bootblock $S/kernelmemfs
 	dd if=/dev/zero of=xv6memfs.img count=10000
-	dd if=$S/bootblock of=xv6memfs.img conv=notrunc
+	dd if=$S/boot/bootblock of=xv6memfs.img conv=notrunc
 	dd if=$S/kernelmemfs of=xv6memfs.img seek=1 conv=notrunc
 
-$S/bootblock: $S/bootasm.S $S/bootmain.c
-	$(CC) $(CFLAGS) -fno-pic -O -nostdinc -I. -c $S/bootmain.c -o $S/bootmain.o
-	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c $S/bootasm.S -o $S/bootasm.o
-	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o $S/bootblock.o $S/bootasm.o $S/bootmain.o
-	$(OBJDUMP) -S $S/bootblock.o > $S/bootblock.asm
-	$(OBJCOPY) -S -O binary -j .text $S/bootblock.o $S/bootblock
-	$S/sign.pl $S/bootblock
+$S/boot/bootblock: $S/boot/bootasm.S $S/boot/bootmain.c
+	$(CC) $(CFLAGS) -fno-pic -O -nostdinc -I. -c $S/boot/bootmain.c -o $S/boot/bootmain.o
+	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c $S/boot/bootasm.S -o $S/boot/bootasm.o
+	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o $S/boot/bootblock.o $S/boot/bootasm.o $S/boot/bootmain.o
+	$(OBJDUMP) -S $S/boot/bootblock.o > $S/boot/bootblock.asm
+	$(OBJCOPY) -S -O binary -j .text $S/boot/bootblock.o $S/boot/bootblock
+	$S/pl/sign.pl $S/boot/bootblock
 
-$S/entryother: $S/entryother.S
-	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c $S/entryother.S -o $S/entryother.o
-	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7000 -o $S/bootblockother.o $S/entryother.o
-	$(OBJCOPY) -S -O binary -j .text $S/bootblockother.o $S/entryother
-	$(OBJDUMP) -S $S/bootblockother.o > $S/entryother.asm
+$S/boot/entryother: $S/boot/entryother.S
+	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c $S/boot/entryother.S -o $S/boot/entryother.o
+	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7000 -o $S/boot/bootblockother.o $S/boot/entryother.o
+	$(OBJCOPY) -S -O binary -j .text $S/boot/bootblockother.o $S/boot/entryother
+	$(OBJDUMP) -S $S/boot/bootblockother.o > $S/boot/entryother.asm
 
-$S/initcode: $S/initcode.S
-	$(CC) $(CFLAGS) -nostdinc -I. -c $S/initcode.S -o $S/initcode.o
-	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o $S/initcode.out $S/initcode.o
-	$(OBJCOPY) -S -O binary $S/initcode.out $S/initcode
-	$(OBJDUMP) -S $S/initcode.o > $S/initcode.asm
+$S/os/initcode: $S/os/initcode.S
+	$(CC) $(CFLAGS) -nostdinc -I. -c $S/os/initcode.S -o $S/os/initcode.o
+	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o $S/os/initcode.out $S/os/initcode.o
+	$(OBJCOPY) -S -O binary $S/os/initcode.out $S/os/initcode
+	$(OBJDUMP) -S $S/os/initcode.o > $S/os/initcode.asm
 
-$S/frunix: $(OBJS) $S/entry.o $S/entryother $S/initcode $S/kernel.ld
-	$(LD) $(LDFLAGS) -T $S/kernel.ld -o $S/frunix $S/entry.o $(OBJS) -b binary $S/initcode $S/entryother
+$S/frunix: $(OBJS) $S/boot/entry.o $S/boot/entryother $S/os/initcode $S/boot/kernel.ld
+	$(LD) $(LDFLAGS) -T $S/boot/kernel.ld -o $S/frunix $S/boot/entry.o $(OBJS) -b binary $S/os/initcode $S/boot/entryother
 	$(OBJDUMP) -S $S/frunix > $S/kernel.asm
 	$(OBJDUMP) -t $S/frunix | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $S/kernel.sym
 
@@ -142,19 +142,19 @@ $S/frunix: $(OBJS) $S/entry.o $S/entryother $S/initcode $S/kernel.ld
 # exploring disk buffering implementations, but it is
 # great for testing the kernel on real hardware without
 # needing a scratch disk.
-MEMFSOBJS = $(filter-out $S/ide.o,$(OBJS)) $S/memide.o
-$S/kernelmemfs: $(MEMFSOBJS) $S/entry.o $S/entryother $S/initcode $S/kernel.ld $S/fs.img
-	$(LD) $(LDFLAGS) -T $S/kernel.ld -o $S/kernelmemfs $S/entry.o  $(MEMFSOBJS) -b binary $S/initcode $S/entryother $S/fs.img
+MEMFSOBJS = $(filter-out $S/driver/ide.o,$(OBJS)) $S/driver/memide.o
+$S/kernelmemfs: $(MEMFSOBJS) $S/boot/entry.o $S/boot/entryother $S/os/initcode $S/boot/kernel.ld $S/fs.img
+	$(LD) $(LDFLAGS) -T $S/boot/kernel.ld -o $S/kernelmemfs $S/boot/entry.o  $(MEMFSOBJS) -b binary $S/os/initcode $S/boot/entryother $S/fs.img
 	$(OBJDUMP) -S $S/kernelmemfs > $S/kernelmemfs.asm
 	$(OBJDUMP) -t $S/kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $S/kernelmemfs.sym
 
-tags: $(OBJS) $S/entryother.S $S/_init
+tags: $(OBJS) $S/boot/entryother.S $S/_init
 	etags *.S *.c
 
-$S/vectors.S: $S/vectors.pl
-	$S/vectors.pl > $S/vectors.S
+$S/pl/vectors.S: $S/pl/vectors.pl
+	$S/pl/vectors.pl > $S/pl/vectors.S
 
-ULIB = $L/ulib.o $S/usys.o $S/printf.o $S/umalloc.o $L/udate.o $L/errno.o $C/font8x16.o $L/ucrypt.o $L/setmode.o $L/reallocarray.o $L/isctype.o $L/syslog.o $L/string.o
+ULIB = $L/ulib.o $S/sys/usys.o $L/printf.o $S/os/umalloc.o $L/udate.o $L/errno.o $C/font8x16.o $L/ucrypt.o $L/setmode.o $L/reallocarray.o $L/isctype.o $L/syslog.o $L/string.o
 
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
@@ -167,8 +167,8 @@ $C/_forktest: $C/forktest.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $C/_forktest $C/forktest.o $I/ulib.o $S/usys.o
 	$(OBJDUMP) -S $C/_forktest > $C/forktest.asm
 
-$S/mkfs: $S/mkfs.c $S/../include/fs.h
-	gcc -o $S/mkfs $S/mkfs.c
+$S/mkfs/mkfs: $S/mkfs/mkfs.c $S/../include/fs.h
+	gcc -o $S/mkfs/mkfs $S/mkfs/mkfs.c
 
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
@@ -239,20 +239,17 @@ ETC=\
 	$M/etc/colortest\
 	$M/etc/inittab\
 
-$S/fs.img: $S/mkfs $(UPROGS)
+$S/fs.img: $S/mkfs/mkfs $(UPROGS)
 	build/build.sh
-	$S/mkfs $S/fs.img $M/changelog $M/cd.1 $(UPROGS) $(ETC)
+	$S/mkfs/mkfs $S/fs.img $M/changelog $M/cd.1 $(UPROGS) $(ETC)
 
 -include *.d
 
-clean: 
-	rm -f $S/*.tex $S/*.dvi $S/*.idx $S/*.aux $S/*.log $S/*.ind $S/*.ilg \
-	$S/*.o $S/*.d $S/*.asm $S/*.sym $C/*.tex $C/*.dvi $C/*.idx $C/*.aux $C/*.log $C/*.ind $C/*.ilg \
-	$C/*.o $C/*.d $C/*.asm $C/*.sym $S/vectors.S $S/bootblock $S/entryother \
-	$L/*.o $L/*.d $L/*.asm $L/*.sym \
-	$S/initcode $S/initcode.out $S/frunix xv6.img $S/fs.img $S/kernelmemfs \
-	xv6memfs.img $S/mkfs .gdbinit frunix.iso \
-	$(UPROGS)
+clean:
+	find $S $C $L -type f \( -name '*.o' -o -name '*.asm' -o -name '*.sym' -o -name '*.tex' -o -name '*.dvi' -o -name '*.idx' -o -name '*.aux' -o -name '*.log' -o -name '*.ind' -o -name '*.ilg' -o -name '*.d' \) -delete
+	rm -rf $S/pl/vectors.S $S/boot/bootblock $S/boot/entryother \
+	$S/os/initcode $S/os/initcode.out $S/frunix xv6.img $S/fs.img $S/kernelmemfs \
+	xv6memfs.img $Smkfs/mkfs .gdbinit frunix.iso $(UPROGS)
 
 # make a printout
 FILES = $(shell grep -v '^\#' runoff.list)
@@ -311,7 +308,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 # check in that version.
 
 EXTRA=\
-	mkfs.c ulib.c ../include/stdio.h cat.c echo.c grep.c kill.c udate.c\
+	mkfs/mkfs.c ulib.c ../include/stdio.h cat.c echo.c grep.c kill.c udate.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\

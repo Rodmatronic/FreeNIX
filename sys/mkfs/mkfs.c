@@ -7,8 +7,8 @@
 #include <time.h>
 
 #define stat xv6_stat  // avoid clash with host struct stat
-#include "../include/fs.h"
-#include "../include/param.h"
+#include "../../include/fs.h"
+#include "../../include/param.h"
 
 #ifndef static_assert
 #define static_assert(a, b) do { switch (0) case 0: case (a): ; } while (0)
