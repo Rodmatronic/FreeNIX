@@ -12,7 +12,6 @@ OBJS = \
 	$S/os/file.o\
 	$S/graph/font8x8.o\
 	$S/os/fs.o\
-	$S/driver/memide.o \
 	$S/driver/ide.o\
 	$S/os/ioapic.o\
 	$S/os/kalloc.o\
@@ -88,12 +87,12 @@ AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
-CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -Os -Wall -MD -m32 -fno-omit-frame-pointer -Wno-infinite-recursion -Wno-implicit-int -Wno-char-subscripts -Wno-implicit-function-declaration -Wno-dangling-else -Wno-int-conversion -Wno-missing-braces -Waggressive-loop-optimizations -Wno-return-type -Wa,--noexecstack -Iinclude
+CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -Oz -Wall -MD -m32 -fno-omit-frame-pointer -Wno-infinite-recursion -Wno-implicit-int -Wno-char-subscripts -Wno-implicit-function-declaration -Wno-dangling-else -Wno-int-conversion -Wno-missing-braces -Waggressive-loop-optimizations -Wno-return-type -Wa,--noexecstack -Iinclude
 
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide -Wa,--noexecstack -Iinclude -DASM_FILE=1
 # FreeBSD ld wants ``elf_i386_fbsd''
-LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
+LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1) --no-warn-rwx-segment
 
 # Disable PIE when possible (for Ubuntu 16.10 toolchain)
 ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]no-pie'),)
@@ -134,7 +133,7 @@ $S/os/initcode: $S/os/initcode.S
 	$(OBJDUMP) -S $S/os/initcode.o > $S/os/initcode.asm
 
 $S/frunix: $(OBJS) $S/boot/entry.o $S/boot/entryother $S/os/initcode $S/boot/kernel.ld
-	$(LD) $(LDFLAGS) -T $S/boot/kernel.ld -o $S/frunix $S/boot/entry.o $(filter-out $S/driver/ide.o,$(OBJS)) -b binary $S/os/initcode $S/boot/entryother
+	$(LD) $(LDFLAGS) -T $S/boot/kernel.ld -o $S/frunix $S/boot/entry.o $(OBJS) -b binary $S/os/initcode $S/boot/entryother
 	$(OBJDUMP) -S $S/frunix > $S/kernel.asm
 	$(OBJDUMP) -t $S/frunix | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $S/kernel.sym
 
@@ -144,9 +143,9 @@ $S/frunix: $(OBJS) $S/boot/entry.o $S/boot/entryother $S/os/initcode $S/boot/ker
 # exploring disk buffering implementations, but it is
 # great for testing the kernel on real hardware without
 # needing a scratch disk.
-MEMFSOBJS = $(filter-out $S/driver/ide.o,$(OBJS))
+MEMFSOBJS = $(filter-out $S/driver/ide.o,$(OBJS)) $S/driver/memide.o
 $S/kernelmemfs: $(MEMFSOBJS) $S/boot/entry.o $S/boot/entryother $S/os/initcode $S/boot/kernel.ld $S/fs.img
-	$(LD) $(LDFLAGS) -T $S/boot/kernel.ld -o $S/kernelmemfs $S/boot/entry.o $(MEMFSOBJS) -b binary $S/os/initcode $S/boot/entryother $S/fs.img
+	$(LD) $(LDFLAGS) -T $S/boot/kernel.ld -o $S/kernelmemfs $S/boot/entry.o  $(MEMFSOBJS) -b binary $S/os/initcode $S/boot/entryother $S/fs.img
 	$(OBJDUMP) -S $S/kernelmemfs > $S/kernelmemfs.asm
 	$(OBJDUMP) -t $S/kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $S/kernelmemfs.sym
 
@@ -179,7 +178,6 @@ $S/mkfs/mkfs: $S/mkfs/mkfs.c $S/../include/fs.h
 .PRECIOUS: %.o
 
 UPROGS=\
-	   	$C/_potato\
         $C/_banner\
         $C/_basename\
 	$C/_cat\
@@ -289,7 +287,7 @@ qemu: $S/fs.img xv6.img
 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
 
 qemu-memfs: xv6memfs.img
-	$(QEMU) -cdrom frunix.iso -smp $(CPUS) -m 256 -serial stdio
+	$(QEMU) -cdrom frunix.iso -smp $(CPUS) -m 256 -serial mon:stdio
 
 qemu-nox: $S/fs.img xv6.img
 	$(QEMU) -nographic $(QEMUOPTS)

@@ -7,7 +7,6 @@
 #include <param.h>
 #include <memlayout.h>
 #include <mmu.h>
-#include <multiboot.h>
 #include <spinlock.h>
 
 void freerange(void *vstart, void *vend);
@@ -54,21 +53,10 @@ kinit2(void *vstart, void *vend)
 void
 freerange(void *vstart, void *vend)
 {
-  extern uint mbi_addr;
-  extern uint mbi_size;
-  struct multiboot_tag_module * memdisk = modget(MULTIBOOT_TAG_TYPE_MODULE);
   char *p;
   p = (char*)PGROUNDUP((uint)vstart);
-  for(; p + PGSIZE <= (char*)vend; p += PGSIZE) {
-    if (p >= (mbi_addr - (mbi_addr % PGSIZE)) && p <= (mbi_addr + mbi_size)) {
-      continue;
-    }
-    if (memdisk != 0) {
-      if (p >= P2V(memdisk->mod_start) && p <= P2V(memdisk->mod_start) + memdisk->mod_end - memdisk->mod_start)
-        continue;
-    }
+  for(; p + PGSIZE <= (char*)vend; p += PGSIZE)
     kfree(p);
-  }
 }
 //PAGEBREAK: 21
 // Free the page of physical memory pointed at by v,
