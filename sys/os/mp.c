@@ -100,8 +100,13 @@ mpinit(void)
   struct mpproc *proc;
   struct mpioapic *ioapic;
 
-  if((conf = mpconfig(&mp)) == 0)
-    cprintf("Expect to run on an SMP\n");
+  conf = mpconfig(&mp);
+  if(conf == 0){
+    cprintf("mpinit: no MP config found\n");
+    ncpu = 1;
+    lapic = (uint*)0xfee00000;   // standard local APIC address
+    return;
+  }
   ismp = 1;
   lapic = (uint*)conf->lapicaddr;
   for(p=(uchar*)(conf+1), e=(uchar*)conf+conf->length; p<e; ){

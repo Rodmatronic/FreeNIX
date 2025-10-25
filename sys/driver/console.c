@@ -176,8 +176,8 @@ cprintf(char *fmt, ...)
     acquire(&cons.lock);
 
   if (kerndcl) {
-	  char * kernmsg = "[system]: ";
-	  for (int i = 0; i < 10; i++){
+	  char * kernmsg = "system: ";
+	  for (int i = 0; i < 8; i++){
 		  consputc(kernmsg[i]);
   	}
   }
