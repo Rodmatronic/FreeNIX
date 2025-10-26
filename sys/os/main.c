@@ -39,7 +39,7 @@ kmain(uint addr)
   cprintf(copyrightbsd);
   kvmalloc();      // kernel page table
   timeinit();	   // set up unix date&time
-  mpinit();        // detect other processors
+//  mpinit();        // detect other processors
   //vbeinit();
   lapicinit();     // interrupt controller
   seginit();       // segment descriptors

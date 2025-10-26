@@ -98,7 +98,8 @@ mycpu(void)
     if (cpus[i].apicid == apicid)
       return &cpus[i];
   }
-  panic("unknown apicid\n");
+  //panic("unknown apicid\n");
+  return &cpus[0];
 }
 
 // Disable interrupts so that we are not rescheduled
