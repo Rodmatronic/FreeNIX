@@ -43,36 +43,12 @@ syslog(int pri, const char *fmt, ...)
 {
     char datebuf[64];
     char logbuf[512];
-    int p[2];
 
-    // Create a pipe to capture /bin/date output
-    if (pipe(p) < 0) return;
-
-    int pid = fork();
-    if (pid == 0) {
-        // Child: redirect stdout to pipe write end
-        close(1);
-        dup(p[1]);
-        close(p[0]);
-        close(p[1]);
-        execl("/bin/date", "date", 0);
-        exit(1);
-    } else {
-        // Parent: read date output
-        close(p[1]);
-        int n = read(p[0], datebuf, sizeof(datebuf) - 1);
-        close(p[0]);
-        wait(0);
-
-        if (n > 0) {
-            datebuf[n] = '\0';
-            if (datebuf[n - 1] == '\n') {
-                datebuf[n - 1] = '\0';
-            }
-        } else {
-            strcpy(datebuf, "unknown-date");
-        }
-    }
+    unsigned long epoch = 0;
+    epoch = time(epoch);
+    struct tm tm;
+    epoch_to_tm(epoch, &tm);
+    strcpy(datebuf, ctime(&tm));
 
     va_list ap;
     va_start(ap, fmt);
