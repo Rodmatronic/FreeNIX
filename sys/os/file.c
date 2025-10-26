@@ -11,6 +11,7 @@
 #include <file.h>
 #include <mmu.h>
 #include <proc.h>
+#include <stat.h>
 
 struct devsw devsw[NDEV];
 struct {
@@ -264,6 +265,13 @@ filewrite(struct file *f, char *addr, int n)
 
       begin_op();
       ilock(f->ip);
+      if (myproc()->p_uid != f->ip->uid &&
+          ((f->ip->mode & S_IFMT) != S_IFCHR) &&
+          ((f->ip->mode & S_IFMT) != S_IFBLK)) {
+        iunlock(f->ip);
+        end_op();
+        return -1;
+      }
       if ((r = writei(f->ip, addr + i, f->off, n1)) > 0){
         f->off += r;
         f->ip->lmtime = epoch_mktime();

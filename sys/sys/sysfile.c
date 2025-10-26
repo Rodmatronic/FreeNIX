@@ -47,32 +47,6 @@ sys_utime(void)
     return 0;
 }
 
-/*int sys_gtty(void) {
-  struct file *f;
-  struct ttyb u_ttyb;
-  
-  if (argfd(0, 0, &f) < 0 || argptr(1, (void*)&u_ttyb, sizeof(struct ttyb)) < 0)
-    return -1;
-  
-  if (f->type != FD_INODE || !S_ISCHR(f->ip->type))
-    return -1; // Not a character device
-
-  struct tty *t = &ttys[f->ip->minor];
-  acquire(&t->lock);
-  
-  // Copy TTY params to user
-  u_ttyb.erase = t->erase;
-  u_ttyb.kill = t->kill;
-  u_ttyb.tflags = t->tflags;
-  
-  release(&t->lock);
-  return 0;
-}*/
-
-//int sys_stty(void) {
-//  // ... (similar to gtty, but copy from user to TTY)
-//}
-
 struct vga_meta {
     int x, y;
     int width, height;
@@ -537,6 +511,14 @@ sys_unlink(void)
   }
 
   ilock(dp);
+
+  if (myproc()->p_uid != dp->uid &&
+      ((dp->mode & S_IFMT) != S_IFCHR) &&
+      ((dp->mode & S_IFMT) != S_IFBLK)) {
+    iunlock(dp);
+    end_op();
+    return -1;
+  }
 
   // Cannot unlink "." or "..".
   if(namecmp(name, ".") == 0 || namecmp(name, "..") == 0)
