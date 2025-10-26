@@ -16,7 +16,7 @@ du(char *path)
   long blocks = 0;
 
   if (stat(path, &st) < 0) {
-    printf("du: cannot stat %s\n", path);
+    perror(path);
     return 0;
   }
 
@@ -29,7 +29,7 @@ du(char *path)
 
   fd = open(path, 0);
   if (fd < 0) {
-    printf("du: cannot open %s\n", path);
+    perror(path);
     return blocks;
   }
 

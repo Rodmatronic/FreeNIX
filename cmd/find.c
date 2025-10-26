@@ -12,7 +12,7 @@ find(char *path)
     struct stat st;
 
     if (stat(path, &st) < 0) {
-        fprintf(stderr, "find: cannot stat '%s'\n", path);
+        perror(path);
         return;
     }
 
@@ -21,7 +21,7 @@ find(char *path)
     // Only directories need further processing
     if (st.st_mode & S_IFDIR) {
         if ((fd = open(path, 0)) < 0) {
-            fprintf(stderr, "find: cannot open directory '%s'\n", path);
+            perror(path);
             return;
         }
         if (strlen(path) + 1 + DIRSIZ + 1 > sizeof(buf)) {

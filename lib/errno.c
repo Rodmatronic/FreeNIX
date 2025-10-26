@@ -40,6 +40,8 @@ vwarnc(int code, const char *fmt, va_list ap)
 
 void
 perror(char * str) {
+
+	if (__progname != NULL) fprintf(stderr, "%s: ", __progname);
 	fprintf(stderr, "%s: ", str);
 	fprintf(stderr, "%s\n", strerror(errno));
 }
@@ -88,8 +90,6 @@ char*
 strerror(int errno)
 {
 	switch (errno) {
-	case 0:
-		return "No such file or directory";
 	case 1:
 		return "Operation not permitted";
 	case 2:
@@ -257,6 +257,6 @@ strerror(int errno)
 	case 83:
 		return "No message of desired type";
 	default:
-		return "Bad ERRNO";
+		return "Unknown error";
 	}
 }

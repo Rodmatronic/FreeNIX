@@ -35,7 +35,7 @@ char *argv[];
 cho:
 	for(c=2; c<argc; c++) {
 		if (stat(argv[c], &stbuf) < 0) {
-			printf("%s: file not found\n", argv[c]);
+			perror(argv[c]);
 			status = 1;
 			continue;
 		}

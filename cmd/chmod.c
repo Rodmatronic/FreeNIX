@@ -41,7 +41,7 @@ char **argv;
 	for (i = 2; i < argc; i++) {
 		p = argv[i];
 		if (stat(p, &st) < 0) {
-			fprintf(stderr, "chmod: can't access %s\n", p);
+			perror(p);
 			++status;
 			continue;
 		}

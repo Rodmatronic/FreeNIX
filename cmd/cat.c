@@ -115,6 +115,7 @@ cat_file(const char *path)
 			clearerr(stdin);
 		} else {
 			if ((fp = open(path, O_RDONLY)) == NULL) {
+				perror(path);
 				errno = ENOENT;
 				warn("%s", path);
 				rval = 1;
@@ -127,8 +128,8 @@ cat_file(const char *path)
 		if (path == NULL || strcmp(path, "-") == 0) {
 			raw_cat(STDIN_FILENO, "stdin");
 		} else {
-			if ((fd = open(path, O_RDONLY)) == -1) {
-				warn("%s", path);
+			if ((fd = open(path, O_RDONLY)) < 0) {
+				perror(path);
 				rval = 1;
 				return;
 			}

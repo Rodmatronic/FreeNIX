@@ -134,7 +134,7 @@ runcmd(struct cmd *cmd)
     close(rcmd->fd);
     int fd = open(rcmd->file, rcmd->mode);
     if (fd < 0) {
-      fprintf(stderr, "open %s failed\n", rcmd->file);
+      perror(rcmd->file);
       exit(1);
     }
     if (rcmd->append) {
@@ -324,7 +324,7 @@ main(int argc, char *argv[])
 	exit(0);
     }
     if ((fd = open(argv[1], O_RDONLY)) < 0) {
-      fprintf(stderr, "sh: cannot open %s\n", argv[1]);
+      perror(argv[1]);
       exit(1);
     }
     while (readline(fd, buf, sizeof(buf)) >= 0) {

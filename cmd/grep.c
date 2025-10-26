@@ -265,7 +265,7 @@ char * file;
 
 	if(file) {
 	    if((fd = open(file, O_RDONLY)) < 0) {
-	        fprintf(stderr, "grep: cannot open %s\n", file);  // Ensure error prints immediately
+	        perror(file);  // Ensure error prints immediately
 	        exit(1);
 	    }
 	} else {
