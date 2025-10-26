@@ -233,14 +233,12 @@ UPROGS=\
 
 ETC=\
     	$M/lib/fortunes\
-    	$M/etc/rcS\
-	$M/etc/rc2\
+	$M/etc/rc\
 	$M/etc/rc.local\
 	$M/etc/master.passwd\
 	$M/etc/group\
 	$M/etc/motd\
 	$M/etc/colortest\
-	$M/etc/inittab\
 
 $S/fs.img: $S/mkfs/mkfs $(UPROGS)
 	build/build.sh

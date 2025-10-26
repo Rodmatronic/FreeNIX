@@ -239,15 +239,13 @@ for (i = 2; i < argc; i++) {
 	"group",
 	"motd",
 	"master.passwd",
-	"rcS",
-	"rc2",
+	"rc",
 	"rc.local",
 	"stressfs",
 	"usertests",
 	"unlink",
 	"getty",
 	"colortest",
-	"inittab",
 	NULL
     };
 
