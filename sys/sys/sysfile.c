@@ -165,7 +165,6 @@ sys_devctl(void)
 	}
 	if (sig == 1) {
 		extern pde_t *kpgdir;
-//		pde_t *oldpgdir = myproc()->pgdir;  // or read current CR3 -> conversion
 		lcr3(V2P(kpgdir));
 
 		for(int i = 0; i < 255; i++){
@@ -178,31 +177,13 @@ sys_devctl(void)
 		return getmaxpid();
 	}
   }
+  if (dev == 4) {
+	if (sig == 0) {
+		return errno;
+	}
+  }
   return -1;
 }
-
-/*
-int
-sys_devctl(void)
-{
-  int dev;
-  int sig;
-  int buf;
-
-  if(argint(0, &dev) < 0 || argint(1, &sig) < 0 || argint(2, &buf) < 0)
-    return -1;
-  switch (dev) {
-	case 0: // mouse
-		if (sig) { // read
-			int pos = (g_mouse_x_pos << 16) | (g_mouse_y_pos & 0xFFFF);
-			buf = pos;
-			cprintf("%x", pos);
-		} else
-			return -1; // bad call
-		break;
-  }
-  return 0;
-}*/
 
 #define SEEK_SET 0
 #define SEEK_CUR 1
@@ -257,6 +238,7 @@ sys_chmod(void)
   if (myproc()->p_uid != 0 && myproc()->p_uid != ip->uid) {
     iunlock(ip);
     end_op();
+    errno = 13;
     return -1;
   }
   ip->mode = (ip->mode & ~0777) | (mode & 0777);
@@ -288,6 +270,7 @@ sys_chown(void)
   if (myproc()->p_uid != 0 && myproc()->p_uid != ip->uid) {
     iunlock(ip);
     end_op();
+    errno = 13;
     return -1;
    }
 
@@ -313,8 +296,10 @@ sys_lseek(void)
         argint(2, &whence) < 0)
         return -1;
 
-    if (f->type == FD_PIPE)
+    if (f->type == FD_PIPE) {
+	errno = 1;
         return -1;
+    }
 
     ilock(f->ip);
 
@@ -330,6 +315,7 @@ sys_lseek(void)
         break;
     default:
         iunlock(f->ip);
+	errno = 2;
         return -1;
     }
 
@@ -362,8 +348,10 @@ sys_dup(void)
 
   if(argfd(0, 0, &f) < 0)
     return -1;
-  if((fd=fdalloc(f)) < 0)
+  if((fd=fdalloc(f)) < 0){
+    errno = 2;
     return -1;
+  }
   filedup(f);
   return fd;
 }
@@ -446,6 +434,7 @@ sys_link(void)
   if ((ip->mode & S_IFMT) != S_IFDIR){
     iunlockput(ip);
     end_op();
+    errno = 21;
     return -1;
   }
 
@@ -473,6 +462,7 @@ bad:
   iupdate(ip);
   iunlockput(ip);
   end_op();
+  errno = 2;
   return -1;
 }
 
@@ -517,6 +507,7 @@ sys_unlink(void)
       ((dp->mode & S_IFMT) != S_IFBLK)) {
     iunlock(dp);
     end_op();
+    errno = 13;
     return -1;
   }
 
@@ -555,6 +546,7 @@ sys_unlink(void)
 bad:
   iunlockput(dp);
   end_op();
+  errno = 2;
   return -1;
 }
 
@@ -628,6 +620,7 @@ sys_open(void)
     ip = create(path, S_IFREG | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH, 0, 0);
     if(ip == 0){
       end_op();
+      errno = 2;
       return -2;
     }
     if (omode & O_TRUNC) {
@@ -636,6 +629,7 @@ sys_open(void)
   } else {
     if((ip = namei(path)) == 0){
       end_op();
+      errno = 2;
       return -2;
     }
     ilock(ip);
@@ -643,6 +637,7 @@ sys_open(void)
     if (((ip->mode & S_IFMT) == S_IFDIR) && omode != O_RDONLY) {
       iunlockput(ip);
       end_op();
+      errno = 13;
       return -1;
     }
   }
@@ -662,7 +657,6 @@ sys_open(void)
     f->off = 0;
   }
   end_op();
-//  ip->lmtime = epoch_mktime();
   f->type = FD_INODE;
   f->ip = ip;
   f->readable = !(omode & O_WRONLY);
@@ -679,6 +673,7 @@ sys_mkdir(void)
   begin_op();
   if(argstr(0, &path) < 0 || (ip = create(path, S_IFDIR | S_IRUSR | S_IXUSR | S_IWUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, 0, 0)) == 0){
     end_op();
+    errno = 13;
     return -1;
   }
   iunlockput(ip);
@@ -699,6 +694,7 @@ sys_mknod(void)
      argint(2, &minor) < 0 ||
      (ip = create(path, S_IFCHR | S_IRUSR | S_IWUSR, major, minor)) == 0){
     end_op();
+    errno = 13;
     return -1;
   }
   iunlockput(ip);
@@ -716,12 +712,14 @@ sys_chdir(void)
   begin_op();
   if(argstr(0, &path) < 0 || (ip = namei(path)) == 0){
     end_op();
+    errno = 2;
     return -1;
   }
   ilock(ip);
   if ((ip->mode & S_IFMT) != S_IFDIR) {
     iunlockput(ip);
     end_op();
+    errno = 21;
     return -1;
   }
   iunlock(ip);

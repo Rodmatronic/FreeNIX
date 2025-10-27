@@ -39,8 +39,9 @@ vwarnc(int code, const char *fmt, va_list ap)
 }
 
 void
-perror(char * str) {
-
+perror(char * str)
+{
+	errno = devctl(4, 0, 0); // grab errno from the kernel
 	if (__progname != NULL) fprintf(stderr, "%s: ", __progname);
 	fprintf(stderr, "%s: ", str);
 	fprintf(stderr, "%s\n", strerror(errno));

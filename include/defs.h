@@ -12,7 +12,7 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
-
+extern int errno;
 extern int draw_blacks;
 extern int cprintf_flag;
 
