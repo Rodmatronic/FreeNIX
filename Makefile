@@ -251,6 +251,7 @@ clean:
 	rm -rf $S/pl/vectors.S $S/boot/bootblock $S/boot/entryother \
 	$S/os/initcode $S/os/initcode.out $S/frunix xv6.img $S/fs.img $S/kernelmemfs \
 	xv6memfs.img $S/mkfs/mkfs .gdbinit frunix.iso $(UPROGS)
+	rm -r isotree/
 
 # make a printout
 FILES = $(shell grep -v '^\#' runoff.list)
