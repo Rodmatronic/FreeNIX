@@ -47,7 +47,7 @@ char **argv;
 		}
 		ms = argv[1];
 		if (chmod(p, newmode(st.st_mode)) < 0) {
-			fprintf(stderr, "chmod: can't change %s\n", p);
+			perror(p);
 			++status;
 			continue;
 		}

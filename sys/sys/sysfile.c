@@ -225,9 +225,6 @@ sys_chmod(void)
   if (argstr(0, &path) < 0 || argint(1, &mode) < 0)
     return -1;
 
-  if ((mode & ~0777) != 0)
-    return -1;
-
   begin_op();
   if ((ip = namei(path)) == 0) {
     end_op();
