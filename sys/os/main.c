@@ -34,7 +34,7 @@ kmain(uint addr)
 {
   mbootinit(addr);
   kinit1(end, P2V(4*1024*1024)); // phys page allocator
-  cprintf("FreeNIX Release %s Version %s\n", sys_release, sys_version);
+  cprintf("%s\n", sys_version);
   cprintf(copyrightxv6);
   cprintf(copyrightbsd);
   kvmalloc();      // kernel page table

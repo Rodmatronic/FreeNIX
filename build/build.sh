@@ -1,4 +1,5 @@
 #!/bin/sh
+# replace stuff right before filesystem gets flashed
 strip cmd/_*
 echo "# " > misc/changelog
 echo "# This file contains the last 5 GIT commits." >> misc/changelog

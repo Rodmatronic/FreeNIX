@@ -1,5 +1,5 @@
 /* Length of the entries in `struct utsname' is 65.  */
-#define _UTSNAME_LENGTH 65
+#define _UTSNAME_LENGTH 128
 #define _UTSNAME_NODENAME_LENGTH _UTSNAME_LENGTH
 #define	SYS_NMLN	256
 

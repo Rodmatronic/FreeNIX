@@ -83,6 +83,13 @@ QEMU = $(shell if which qemu > /dev/null; \
 	echo "***" 1>&2; exit 1)
 endif
 
+.PHONY: pre
+pre:
+	@./build/newvers.sh
+
+all: pre xv6.img
+
+
 CC = $(TOOLPREFIX)gcc
 AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
@@ -250,7 +257,7 @@ clean:
 	find $S $C $L -type f \( -name '*.o' -o -name '*.asm' -o -name '*.sym' -o -name '*.tex' -o -name '*.dvi' -o -name '*.idx' -o -name '*.aux' -o -name '*.log' -o -name '*.ind' -o -name '*.ilg' -o -name '*.d' \) -delete
 	rm -rf $S/pl/vectors.S $S/boot/bootblock $S/boot/entryother \
 	$S/os/initcode $S/os/initcode.out $S/frunix xv6.img $S/fs.img $S/kernelmemfs \
-	xv6memfs.img $S/mkfs/mkfs .gdbinit frunix.iso $(UPROGS)
+	xv6memfs.img $S/mkfs/mkfs .gdbinit frunix.iso include/version.h $(UPROGS)
 	rm -r isotree/
 
 # make a printout
