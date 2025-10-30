@@ -20,7 +20,7 @@ char **argv;
 		exit(1);
 	}
 	if((fold = open(argv[1], 0)) < 0) {
-		write(1, "Cannot open old file.\n", 22);
+		perror(argv[1]);
 		exit(1);
 	}
 	fstat(fold, &buf);

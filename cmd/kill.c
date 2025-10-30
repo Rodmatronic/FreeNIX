@@ -258,7 +258,10 @@ main(int argc, char *argv[])
 			}
 
 		if (kill(pid, numsig) == -1) {
-			warn("%s %s", pid < -1 ? "pgrp" : "pid", *argv);
+//			warn("%s %s", pid < -1 ? "pgrp" : "pid", *argv);
+			char * str = "\0";
+			sprintf(str, "%d", pid);
+			perror(str);
 			errors = 1;
 		}
 	}

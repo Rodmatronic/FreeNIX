@@ -576,6 +576,7 @@ kill(int pid, int status)
       // - Users can only kill their own processes
       if(curproc->p_uid != 0 && p->p_uid != curproc->p_uid) {
         release(&ptable.lock);
+	errno = 1;
         return 1;  // Permission denied
       }
 
@@ -594,9 +595,10 @@ kill(int pid, int status)
   }
   release(&ptable.lock);
 
-  if(!found)
+  if(!found) {
+    errno = 3;
     return -1;  // Process not found
-
+   }
   return 0;
 }
 

@@ -1,5 +1,6 @@
 #include "../include/errno.h"
 #include "../include/stdio.h"
+#include <config.h>
 
 void
 verrc(int eval, int code, const char *fmt, va_list ap)
@@ -42,9 +43,12 @@ void
 perror(char * str)
 {
 	errno = devctl(4, 0, 0); // grab errno from the kernel
+#if USERSPACE_COLOURS
+	fprintf(stderr, "\033[91m");
+#endif
 	if (__progname != NULL) fprintf(stderr, "%s: ", __progname);
 	fprintf(stderr, "%s: ", str);
-	fprintf(stderr, "%s\n", strerror(errno));
+	fprintf(stderr, "%s\033[0m\n", strerror(errno));
 }
 
 void

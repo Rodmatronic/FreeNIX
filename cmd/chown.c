@@ -40,7 +40,7 @@ cho:
 			continue;
 		}
 		if (chown(argv[c], uid, stbuf.st_gid) < 0) {
-			printf("%s: cannot change ownership\n", argv[c]);
+			perror(argv[c]);
 			status = 1;
 		}
 	}

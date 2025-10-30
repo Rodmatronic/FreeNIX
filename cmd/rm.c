@@ -117,7 +117,7 @@ int level;
 //		}
 	}
 	if(unlink(arg) && (fflg==0 || iflg)) {
-		printf("rm: %s not removed\n", arg);
+		perror(arg);
 		++errcode;
 	}
 	return 0;

@@ -32,7 +32,7 @@ register char *argv[];
 	if (argc < 3)
 		goto usage;
 	if (stat(argv[1], &s1) < 0) {
-		fprintf(stderr, "mv: cannot access %s\n", argv[1]);
+		perror(argv[1]);
 		return(1);
 	}
 	if ((s1.st_mode & S_IFMT) == S_IFDIR) {
@@ -62,7 +62,7 @@ char *source, *target;
 	char	buf[MAXN];
 
 	if (stat(source, &s1) < 0) {
-		fprintf(stderr, "mv: cannot access %s\n", source);
+		perror(source);
 		return(1);
 	}
 	if ((s1.st_mode & S_IFMT) == S_IFDIR) {
@@ -274,7 +274,7 @@ int dinode;
 	strcpy(nspth, spth);
 	while (sbuf.st_ino != ROOTINO) {
 		if (stat(nspth, &sbuf) < 0) {
-			fprintf(stderr, "mv: cannot access %s\n", nspth);
+			perror(nspth);
 			return(1);
 		}
 		if (sbuf.st_ino == dinode) {
