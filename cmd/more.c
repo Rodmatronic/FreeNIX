@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-#define LINES_PER_PAGE 29
+#define LINES_PER_PAGE 24
 
 void
 wait_prompt() {
