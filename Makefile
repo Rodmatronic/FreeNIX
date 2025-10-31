@@ -249,7 +249,7 @@ ETC=\
 
 $S/fs.img: $S/mkfs/mkfs $(UPROGS)
 	build/build.sh
-	$S/mkfs/mkfs $S/fs.img $M/changelog $M/cd.1 $(UPROGS) $(ETC)
+	$S/mkfs/mkfs $S/fs.img $M/cd.1 $(UPROGS) $(ETC)
 
 -include *.d
 

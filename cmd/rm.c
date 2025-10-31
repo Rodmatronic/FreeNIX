@@ -113,11 +113,11 @@ int level;
 			return 1;
 	}
 	else if(!fflg) {
-//		if (access(arg, 02)<0) {
-//			printf("rm: %s %o mode ", arg, buf.mode&0777);
-//			if(!yes())
-//				return;
-//		}
+		if (access(arg, 02)<0) {
+			printf("rm: %s %o mode ", arg, buf.st_mode&0777);
+			if(!yes())
+				return 1;
+		}
 	}
 	if(unlink(arg) && (fflg==0 || iflg)) {
 		perror(arg);
