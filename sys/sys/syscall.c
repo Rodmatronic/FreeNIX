@@ -115,6 +115,7 @@ extern int sys_uname(void);
 extern int sys_ioctl(void);
 extern int sys_sync(void);
 extern int sys_stty(void);
+extern int sys_gtty(void);
 extern int sys_lseek(void);
 extern int sys_devctl(void);
 extern int sys_stime(void);
@@ -159,6 +160,7 @@ static int (*syscalls[])(void) = {
 [SYS_uname]   sys_uname,
 [SYS_sync]    sys_sync,
 [SYS_stty]    sys_stty,
+[SYS_gtty]    sys_gtty,
 [SYS_lseek]   sys_lseek,
 [SYS_devctl]  sys_devctl,
 [SYS_stime]   sys_stime,

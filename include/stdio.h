@@ -107,9 +107,6 @@ struct tm {
   int tm_isdst;
 };
 
-int stty(struct ttyb *);
-
-
 // system calls
 int fork(void);
 int exit(int status) __attribute__((noreturn));
@@ -139,6 +136,8 @@ int setgid(int);
 int usleep(unsigned long);
 int time(unsigned long);
 int uname(struct utsname *);
+int stty(struct ttyb *);
+int gtty(struct ttyb *);
 int sync(void);
 int lseek(int, int, int);
 int devctl(int dev, int sig, int data);

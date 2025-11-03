@@ -7,26 +7,61 @@ void gotoxy(int x, int y) {
 	printf("\x1b[%d;%df", y, x);
 }
 
+void enable(){
+    struct ttyb t;
+    gtty(&t);
+    t.tflags = ECHO;
+    stty(&t);
+}
+
+void disable(){
+    struct ttyb t;
+    gtty(&t);
+    t.tflags |= RAW;
+    t.tflags &= ~ECHO;
+    stty(&t);
+}
+
 int
 main(int argc, char ** argv)
 {
+	printf("Move with the arrows");
+    struct ttyb t;
+    gtty(&t);
+    t.tflags |= RAW;
+    t.tflags &= ~ECHO;
+    stty(&t);
 
-  printf("\033[H\033[2J");
-  printf("One");
-  gotoxy(2, 2);
-  printf("Two");
-  gotoxy(4, 4);
-  printf("Three");
-  gotoxy(5, 10);
-  printf("Four");
-  gotoxy(10, 10);
-  printf("Five");
-  return 1;
+    int x = 10;
+    int y = 10;
+    unsigned char c;
+    gotoxy(x, y);
+    while (read(0, &c, 1) == 1) {
+        switch (c) {
+        case 0x00: // up
+            y--;
+            break;
+        case 0x01: // down
+            y++;
+            break;
+        case 0x02: // left
+            x--;
+            break;
+        case 0x03: // right
+            x++;
+            break;
+        default:
+            break;
+        }
+	enable();
+	gotoxy(1, 1);
+	printf("x %d, y %d", x, y);
+	disable();
+	gotoxy(x, y);
+    }
 
-  for (int i = 0; i < 8; i++){
-	printf("\033[3%dm#", i);
-  }
-  printf("\n");
+    return 0;
+
   for (int i = 0; i < 8; i++){
 	printf("\033[4%dm#", i);
   }

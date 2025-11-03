@@ -101,14 +101,21 @@ sys_getenv(void)
   return 0;
 }
 
+extern struct ttyb ttyb;
+extern struct cons cons;
+
 int
 sys_gtty(void)
 {
-  return myproc()->ttyflags;
-}
+  struct ttyb *uttyb;
+  if (argptr(0, (char **)&uttyb, sizeof(struct ttyb)) < 0)
+    return -1;
 
-extern struct ttyb ttyb;
-extern struct cons cons;
+  acquire(&cons.lock);
+  *uttyb = ttyb;
+  release(&cons.lock);
+  return 0;
+}
 
 int
 sys_stty(void)

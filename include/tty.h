@@ -2,7 +2,8 @@
 #ifndef _TTY_H_
 #define _TTY_H_
 
-#define ECHO  010  // Echo input characters
+#define ECHO	010
+#define RAW	020
 
 #include "../include/spinlock.h"
 
