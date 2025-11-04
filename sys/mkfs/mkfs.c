@@ -268,6 +268,7 @@ main(int argc, char *argv[])
 	    "wc",
 	    "which",
 	    "whoami",
+	    "vi",
 	    "yes",
 	    NULL
     };

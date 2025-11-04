@@ -651,6 +651,8 @@ consoleintr(int (*getc)(void))
 			if (c == 0) continue;
 			if (input.e - input.r < INPUT_BUF) {
 				input.buf[input.e++ % INPUT_BUF] = c;
+				if(ttyb.tflags & ECHO)
+					consputc(c);
 				input.w = input.e;
 				wakeup(&input.r);
 			}
