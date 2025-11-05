@@ -11,10 +11,17 @@
 int x=0;
 int y=0;
 int tempfd;
+int sourcefd;
 char * filebuf = "\0";
 char * sourcefb = "\0";
 int status;
 int exists;
+int aoffset=0;
+int newfile=0;
+int scrollup=0;
+
+char * writemsg = "\033[107m\033[30mFile modified since write; write or use ! to override.\033[0m";
+char * badcommand = "\033[107m\033[30mUnknown command\033[0m";
 
 void viexit(int s);
 void echoback();
@@ -36,11 +43,15 @@ void syncxy() {
 	printf("\033[%d;%dH", y, x);
 }
 
+void clear() {
+	printf("\033[2J");
+}
+
 void gotoxy(x, y) {
 	printf("\033[%d;%dH", y, x);
 }
 
-void enable(){
+void enable() {
 	struct ttyb t;
 	gtty(&t);
 	t.tflags = ECHO;
@@ -48,7 +59,7 @@ void enable(){
 	stty(&t);
 }
 
-void disable(){
+void disable() {
 	struct ttyb t;
 	gtty(&t);
 	t.tflags |= RAW;
@@ -58,102 +69,91 @@ void disable(){
 
 void
 tobottom() {
-	gotoxy(0, 24);
+	gotoxy(1, 24);
 	for(int i=0;i<79;i++)
 		write(stdout, " ", 1);
-	gotoxy(0, 24);
+	gotoxy(1, 24);
 	printf("\033[24;0H");
 }
 
-int cursor_offset(int fd, int line, int col) {
-	lseek(fd, 0, SEEK_SET);
+int cursor_offset(int line, int col) {
+	if (line <= 0 || col <= 0) return -1;
+	lseek(tempfd, 0, SEEK_SET);
+
 	int current = 1;
-	int pos_in_line = 1;
-	char c;
 	int offset = 0;
-	while (read(fd, &c, 1) == 1) {
-		if (current == line && pos_in_line == col)
+	int disp_col = 1;
+	unsigned char ch;
+	while (read(tempfd, &ch, 1) == 1) {
+		if (current == line && disp_col == col)
 			break;
-		offset++;
-		if (c == '\n') {
+
+		if (ch == '\n') {
+			if (current == line) {
+				return offset;
+			}
 			current++;
-			pos_in_line = 1;
+			disp_col = 1;
 		} else {
-			pos_in_line++;
+			if (ch == '\t') {
+				int spaces = 8 - ((disp_col - 1) % 8);
+				disp_col += spaces;
+			} else {
+				disp_col++;
+			}
+		}
+		offset++;
+	}
+	return offset;
+}
+
+int cmp() {
+	char buf1[1024], buf2[1024];
+	ssize_t n1, n2;
+	int same = 0;
+
+	while ((n1 = read(sourcefd, buf1, sizeof(buf1))) > 0 &&
+			(n2 = read(tempfd, buf2, sizeof(buf2))) > 0) {
+		if (n1 != n2 || memcmp(buf1, buf2, n1) != 0) {
+			same = 1;
+			break;
 		}
 	}
-	return offset;
-}
-
-int line_start(int fd, int line) {
-	lseek(fd, 0, SEEK_SET);
-	int current = 1;
-	char c;
-	int offset = 0;
-	while (read(fd, &c, 1) == 1) {
-		if (current == line)
-			break;
-		offset++;
-		if (c == '\n')
-			current++;
-	}
-	return offset;
-}
-
-int line_end(int fd, int line) {
-	lseek(fd, 0, SEEK_SET);
-	int current = 1;
-	char c;
-	int offset = 0;
-	while (read(fd, &c, 1) == 1) {
-		if (current == line && c == '\n')
-			break;
-		offset++;
-		if (c == '\n')
-			current++;
-	}
-	return offset;
-}
-
-int line_length(int fd, int line) {
-	lseek(fd, 0, SEEK_SET);
-	int current = 1;
-	int len = 0;
-	char c;
-	while (read(fd, &c, 1) == 1) {
-		if (current == line) {
-			if (c == '\n' || c == '\r')
-				break;
-			len++;
+	if (same) {
+		if (read(sourcefd, buf1, 1) > 0 || read(tempfd, buf2, 1) > 0) {
+			same = 1;
 		}
-		if (c == '\n')
-			current++;
 	}
-	return len;
+	return same;
 }
 
 void
 insertmode() {
-	enable();
-	tobottom();
-	write(stdout, "I", 1);
-	disable();
 	syncxy();
 	unsigned char c;
 	while (read(0, &c, 1) == 1) {
 		switch (c) {
 		case 0x00: // up
 			y--;
+			if (y == 0 && aoffset > 0) {
+				aoffset--;
+				y++;
+				echoback();
+			}
 			break;
 		case 0x01: // down
 			y++;
+			if (y == 24) {
+				aoffset++;
+				y--;
+				echoback();
+			}
 			break;
 		case 0x02: // left
 			x--;
 			break;
 		case 0x03: // right
-			if (x < line_length(tempfd, y))
-				x++;
+			x++;
 		case '\033': // esc
 			enable();
 			tobottom();
@@ -162,7 +162,7 @@ insertmode() {
 		case '\b':
 			return;
 		default: 
-			int off = cursor_offset(tempfd, y, x);
+			int off = cursor_offset(y+aoffset, x);
 			lseek(tempfd, off, SEEK_SET);
 			write(tempfd, &c, 1);
 			enable();
@@ -191,6 +191,12 @@ commandmode() {
 		if (c == '\n' || c == '\r') {
 			buf[len] = '\0';  // terminate
 			if (strcmp(buf, "q") == 0) {
+				if (cmp()) {
+					tobottom();
+					printf(writemsg);
+					disable();
+					return;
+				}
 				viexit(0);
 			} else if (strcmp(buf, "w") == 0) {
 				copy(filebuf, sourcefb);
@@ -204,7 +210,7 @@ commandmode() {
 				viexit(0);
 			} else {
 				tobottom();
-				printf("Unknown command: %s", buf);
+				printf(badcommand);
 				disable();
 			}
 			return;  // exit command mode
@@ -215,7 +221,7 @@ commandmode() {
 		} else if (c == '\b') {  // backspace
 			if (len > 0) {
 				len--;
-				printf("\b \b");
+				gotoxy(len+2, 24);
 			}
 		} else if (len < (int)sizeof(buf) - 1) {
 			buf[len++] = c;
@@ -233,7 +239,33 @@ viexit(int s) {
 	stty(&t);
 	unlink(filebuf);
 	close(tempfd);
+	close(sourcefd);
 	exit(s);
+}
+
+int seekline(int lines) {
+	char buf[1024];
+	ssize_t bytesread;
+	int pos = 0;
+	int line_count = 0;
+	if (lines <= 0) {
+		lseek(tempfd, 0, SEEK_SET);
+		return 0;
+	}
+	lseek(tempfd, 0, SEEK_SET);
+	while ((bytesread = read(tempfd, buf, sizeof(buf))) > 0) {
+		for (ssize_t i = 0; i < bytesread; i++) {
+			pos++;
+			if (buf[i] == '\n') {
+				line_count++;
+				if (line_count == lines) {
+					lseek(tempfd, pos, SEEK_SET);
+					return pos;
+				}
+			}
+		}
+	}
+	return -1;
 }
 
 /*
@@ -243,19 +275,26 @@ viexit(int s) {
 void
 echoback() {
 	enable();
+	clear();
 	gotoxy(1, 2);
-	for (int i=0; i < 22;i++) {
-		write(stdout, "~\n", 2);
-	}
-	gotoxy(1, 1);
-	char buf[1024]; // TODO: replace with fsize
+	char buf[1024];
 	ssize_t bytesread;
-	lseek(tempfd, 0, SEEK_SET);
+	int line_count = 0;
+	seekline(aoffset);
 	while ((bytesread = read(tempfd, buf, sizeof(buf))) > 0) {
-		if (write(stdout, buf, bytesread) != bytesread) {
-			perror("write");
-			close(tempfd);
-			exit(1);
+		for (ssize_t i = 0; i < bytesread; i++) {
+			if (write(stdout, &buf[i], 1) != 1) {
+				perror("write");
+				close(tempfd);
+				exit(1);
+			}
+			if (buf[i] == '\n') {
+				line_count++;
+				if (line_count >= 22) {
+					disable();
+					return;
+				}
+			}
 		}
 	}
 
@@ -291,7 +330,12 @@ main(int argc, char ** argv)
 	char * buf = "\0";
 	struct stat st;
 	sourcefb = argv[1];
-	stat(sourcefb, &st);
+	if (stat(argv[1], &st) == -1) {
+		newfile = 1;
+		int fd = open(argv[1], O_RDONLY | O_CREAT);
+		close(fd);
+	}
+	sourcefd = open(argv[1], O_RDONLY);
 	sprintf(buf, "/tmp/%s", basename(argv[1]));
 	filebuf = buf;
 	copy(argv[1], buf);
@@ -299,7 +343,10 @@ main(int argc, char ** argv)
 	printf("\033[2J");
 	echoback();
 	tobottom();
-	printf("%s: %d bytes.", basename(sourcefb), st.st_size);
+	if (!newfile)
+		printf("%s: %d bytes.", basename(sourcefb), st.st_size);
+	else
+		printf("%s: new file: %d bytes.", basename(sourcefb), st.st_size);
 	disable();
 	syncxy();
 	unsigned char c;
@@ -307,9 +354,20 @@ main(int argc, char ** argv)
 		switch (c) {
 		case 0x00: // up
 			y--;
+			if (y == 0 && aoffset > 0) {
+				scrollup=1;
+				aoffset--;
+				y++;
+				echoback();
+			}
 			break;
 		case 0x01: // down
 			y++;
+			if (y == 24) {
+				aoffset++;
+				y--;
+				echoback();
+			}
 			break;
 		case 0x02: // left
 			x--;
@@ -323,6 +381,9 @@ main(int argc, char ** argv)
 		case 'i':
 			insertmode();
 			break;
+		case 'a':
+			x++;
+			insertmode();
 		default:
 			break;
 		}
