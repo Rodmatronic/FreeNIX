@@ -64,27 +64,27 @@ sys_sync(void)
   return 0;
 }
 
-// Fetch the nth word-sized system call argument as a file descriptor
-// and return both the descriptor and the corresponding struct file.
 static int
 argfd(int n, int *pfd, struct file **pf)
 {
-  int fd;
-  struct file *f;
+	int fd;
+	struct file *f;
 
-  if(argint(n, &fd) < 0){
-    errno = 1;
-    return -1;
-  }
-  if(fd < 0 || fd >= NOFILE || (f=myproc()->ofile[fd]) == 0) {
-    errno = 2;
-    return -1;
-  }
-  if(pfd)
-    *pfd = fd;
-  if(pf)
-    *pf = f;
-  return 0;
+	if(argint(n, &fd) < 0){
+		errno = 1;
+		cprintf("why1");
+		return -1;
+	}
+	if(fd < 0 || fd >= NOFILE || (f = myproc()->ofile[fd]) == 0){
+		errno = 2;
+		cprintf("why2\n");
+		return -1;
+	}
+	if(pfd)
+		*pfd = fd;
+	if(pf)
+		*pf = f;
+	return 0;
 }
 
 int
@@ -515,6 +515,7 @@ sys_open(void)
     argint(2, &mode);
   }
 
+
   begin_op();
 
   if(omode & O_CREAT){
@@ -553,6 +554,7 @@ sys_open(void)
     end_op();
     return -1;
   }
+
   iunlock(ip);
   if (omode & O_APPEND) {
     f->off = ip->size;

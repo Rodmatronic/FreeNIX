@@ -233,7 +233,7 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   for(; a < newsz; a += PGSIZE){
     mem = kalloc();
     if(mem == 0){
-      cprintf("allocuvm out of memory\n");
+      cprintf("allocuvm out of memory (mem is 0)\n");
       deallocuvm(pgdir, newsz, oldsz);
       return 0;
     }

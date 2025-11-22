@@ -47,28 +47,35 @@ fetchstr(uint addr, char **pp)
   return -1;
 }
 
-// Fetch the nth 32-bit system call argument.
 int
 argint(int n, int *ip)
 {
-  return fetchint((myproc()->tf->esp) + 4 + 4*n, ip);
+	struct trapframe *tf = myproc()->tf;
+
+	switch(n){
+		case 0: *ip = tf->ebx; return 0;
+		case 1: *ip = tf->ecx; return 0;
+		case 2: *ip = tf->edx; return 0;
+		case 3: *ip = tf->esi; return 0;
+		case 4: *ip = tf->edi; return 0;
+		case 5: *ip = tf->ebp; return 0;
+	}
+	return -1;
 }
 
-// Fetch the nth word-sized system call argument as a pointer
-// to a block of memory of size bytes.  Check that the pointer
-// lies within the process address space.
 int
 argptr(int n, char **pp, int size)
 {
-  int i;
-  struct proc *curproc = myproc();
- 
-  if(argint(n, &i) < 0)
-    return -1;
-  if(size < 0 || (uint)i >= curproc->sz || (uint)i+size > curproc->sz)
-    return -1;
-  *pp = (char*)i;
-  return 0;
+	int i;
+	struct proc *curproc = myproc();
+
+	if(argint(n, &i) < 0)
+		return -1;
+	if(size < 0 || (uint)i >= curproc->sz || (uint)i+size > curproc->sz)
+		return -1;
+
+	*pp = (char*)i;
+	return 0;
 }
 
 // Fetch the nth word-sized system call argument as a string pointer.
@@ -78,10 +85,10 @@ argptr(int n, char **pp, int size)
 int
 argstr(int n, char **pp)
 {
-  int addr;
-  if(argint(n, &addr) < 0)
-    return -1;
-  return fetchstr(addr, pp);
+	int addr;
+	if(argint(n, &addr) < 0)
+		return -1;
+	return fetchstr(addr, pp);
 }
 
 extern int sys_syscall(void);
@@ -231,15 +238,18 @@ static int (*syscalls[])(void) = {
 void
 syscall(void)
 {
-  int num;
-  struct proc *curproc = myproc();
+	struct proc *p;
+	int num;
 
-  num = curproc->tf->eax;
-  if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
-    curproc->tf->eax = syscalls[num]();
-  } else {
-    cprintf("%d %s: unknown sys call %d\n",
-            curproc->p_pid, curproc->name, num);
-    curproc->tf->eax = -1;
-  }
+	p = myproc();
+
+	num = p->tf->eax;
+
+	if(num >= 0 && num < NELEM(syscalls) && syscalls[num]){
+		p->tf->eax = syscalls[num]();
+	} else {
+		p->tf->eax = -1;
+	}
+
 }
+
