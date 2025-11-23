@@ -1105,8 +1105,80 @@ int sys_rename(void){
 	return ENOSYS;
 }
 int sys_rmdir(void){
-	return ENOSYS;
+	struct inode *ip, *dp;
+	struct dirent de;
+	char name[DIRSIZ], *path;
+	uint off;
+
+	if(argstr(0, &path) < 0){
+		errno = EPERM;
+		return -1;
+	}
+
+	begin_op();
+	if((dp = nameiparent(path, name)) == 0){
+		end_op();
+		errno = ENOENT;
+		return -1;
+	}
+
+	ilock(dp);
+
+	if (myproc()->p_uid != dp->uid) {
+		iunlockput(dp);
+		end_op();
+		errno = EPERM;
+		return -1;
+	}
+
+	if(namecmp(name, ".") == 0 || namecmp(name, "..") == 0) {
+		iunlockput(dp);
+		end_op();
+		errno=EPERM;
+		return -1;
+	}
+
+	if((ip = dirlookup(dp, name, &off)) == 0) {
+		iunlockput(dp);
+		end_op();
+		errno=ENOENT;
+		return -1;
+	}
+	ilock(ip);
+
+	if(!S_ISDIR(ip->mode)) {
+		iunlockput(ip);
+		iunlockput(dp);
+		end_op();
+		errno = ENOTDIR;
+		return -1;
+	}
+
+	if(!isdirempty(ip)) { // ensure the directory is empty
+		iunlockput(ip);
+		iunlockput(dp);
+		end_op();
+		errno = ENOTEMPTY;
+		return -1;
+	}
+
+	memset(&de, 0, sizeof(de));
+	if(writei(dp, (char*)&de, off, sizeof(de)) != sizeof(de))
+		panic("rmdir: writei");
+
+	dp->nlink--;
+	iupdate(dp);
+	iunlockput(dp);
+
+	ip->nlink--;
+	iupdate(ip);
+	iunlockput(ip);
+
+	end_op();
+
+	return 0;
 }
+
 int sys_times(void){
 	return ENOSYS;
 }
